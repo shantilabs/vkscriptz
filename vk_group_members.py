@@ -6,8 +6,8 @@ from _vkscriptz import vk_group_members, format_dict, coding
 
 if __name__ == '__main__':
     fields = [
-        'city',
-        'online',
+        # 'city',
+        # 'online',
     ]
     for group_id in sys.argv[1:]:
         for user in vk_group_members(group_id, fields=fields):
