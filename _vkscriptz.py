@@ -57,23 +57,6 @@ USER_FIELDS = (
 )
 
 
-def vk_create_target_group(account_id, name, domain='', lifetime=0):
-    """
-    https://vk.com/dev/ads.createTargetGroup
-    """
-    resp = requests.get('https://api.vk.com/method/ads.createTargetGroup', params=dict(
-        account_id=account_id,
-        name=name,
-        domain=domain,
-        lifetime=lifetime,
-    ))
-    try:
-        users = resp.json()['response']['users']
-    except:
-        sys.stderr.write(resp.text)
-        raise
-
-
 def vk_group_members(group_id, count=1000, fields=()):
     """
     https://vk.com/dev/groups.getMembers
