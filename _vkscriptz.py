@@ -4,6 +4,7 @@ import os
 import requests
 import sys
 
+import time
 
 coding = sys.stdout.encoding or sys.stdin.encoding
 root = os.path.realpath(os.path.dirname(__file__))
@@ -57,29 +58,42 @@ USER_FIELDS = (
 )
 
 
-def vk_group_members(group_id, count=1000, fields=()):
+def vk_group_members(group_id, city_id=None, count=1000):
     """
     https://vk.com/dev/groups.getMembers
     """
+    if city_id:
+        city_id = int(city_id)
+    assert city_id
     for offset in xrange(0, sys.maxint, count):
         resp = requests.get('https://api.vk.com/method/groups.getMembers', params=dict(
             group_id=group_id,
             offset=offset,
             count=count,
-            fields=','.join(fields),
+            fields='city' if city_id else '',
+            # access_token=ACCESS_TOKEN,
+            v=VERSION_ID,
         ))
         data = resp.json()
-        if 'error' in data and data['error']['error_msg'] == 'Access denied':
+        if 'error' in data and data['error']['error_msg'].startswith((
+            'Access denied',
+            'Access to group denied',
+        )):
             break
         try:
-            users = data['response']['users']
+            items = data['response']['items']
         except:
             sys.stderr.write(resp.text)
             raise
-        if not users:
+        time.sleep(.5)
+        if not items:
             break
-        for user in users:
-            yield user
+        for item in items:
+            if city_id:
+                if 'city' in item and item['city']['id'] == city_id:
+                    yield item['id']
+            else:
+                yield item
 
 
 def vk_group_search(
