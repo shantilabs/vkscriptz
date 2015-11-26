@@ -12,8 +12,9 @@ if __name__ == '__main__':
         gid = '-' + owner_id
         for post in vk_wall(gid):
             for like in vk_likes(gid, 'post', post['id']):
-                print(like)
-                n += 1
+                if like > 0:
+                    print(like)
+                    n += 1
             for comment in vk_wall_comments(gid, post['id']):
                 if comment['from_id'] > 0:
                     print(comment['from_id'])

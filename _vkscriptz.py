@@ -58,37 +58,19 @@ USER_FIELDS = (
 )
 
 
-def vk_wall(owner_id, count=100):
+def vk_wall(owner_id):
     """
     https://vk.com/dev/wall.get
     """
-    for offset in xrange(0, sys.maxint, count):
-        resp = requests.get('https://api.vk.com/method/wall.get', params=dict(
-            owner_id=owner_id,
-            offset=offset,
-            count=count,
-            # access_token=ACCESS_TOKEN,
-            v=VERSION_ID,
-        ))
-        data = resp.json()
-        if 'error' in data and data['error']['error_msg'].startswith((
-            'Access denied',
-            'Access to group denied',
-        )):
-            break
-        try:
-            items = data['response']['items']
-        except:
-            sys.stderr.write(resp.text)
-            raise
-        # time.sleep(.1)
-        if not items:
-            break
-        for item in items:
-            yield item
+    for item in paginate(
+        'https://api.vk.com/method/wall.get',
+        100,
+        owner_id=owner_id,
+    ):
+        yield item
 
 
-def vk_likes(owner_id, type, item_id, count=100):
+def vk_likes(owner_id, type, item_id):
     """
     https://vk.com/dev/likes.getList
     """
@@ -104,90 +86,47 @@ def vk_likes(owner_id, type, item_id, count=100):
         'topic_comment',
         'sitepage',
     )
-    for offset in xrange(0, sys.maxint, count):
-        resp = requests.get('https://api.vk.com/method/likes.getList', params=dict(
-            owner_id=owner_id,
-            item_id=item_id,
-            type=type,
-            offset=offset,
-            count=count,
-            # access_token=ACCESS_TOKEN,
-            v=VERSION_ID,
-        ))
-        data = resp.json()
-        try:
-            items = data['response']['items']
-        except:
-            sys.stderr.write(resp.text)
-            raise
-        if not items:
-            break
-        for item in items:
-            yield item
+    for item in paginate(
+        'https://api.vk.com/method/likes.getList',
+        100,
+        owner_id=owner_id,
+        item_id=item_id,
+        type=type,
+    ):
+        yield item
 
 
-def vk_wall_comments(owner_id, post_id, preview_length=0, count=100):
+def vk_wall_comments(owner_id, post_id, preview_length=0):
     """
     https://vk.com/dev/wall.getComments
     """
-    for offset in xrange(0, sys.maxint, count):
-        resp = requests.get('https://api.vk.com/method/wall.getComments', params=dict(
-            owner_id=owner_id,
-            post_id=post_id,
-            offset=offset,
-            count=count,
-            preview_length=preview_length,
-            # access_token=ACCESS_TOKEN,
-            v=VERSION_ID,
-        ))
-        data = resp.json()
-        try:
-            items = data['response']['items']
-        except:
-            sys.stderr.write(resp.text)
-            raise
-        # time.sleep(.1)
-        if not items:
-            break
-        for item in items:
-            yield item
+    for item in paginate(
+        'https://api.vk.com/method/wall.getComments',
+        100,
+        owner_id=owner_id,
+        post_id=post_id,
+        preview_length=preview_length,
+    ):
+        yield item
 
 
-def vk_group_members(group_id, city_id=None, count=1000):
+def vk_group_members(group_id, city_id=None):
     """
     https://vk.com/dev/groups.getMembers
     """
     if city_id:
         city_id = int(city_id)
-    for offset in xrange(0, sys.maxint, count):
-        resp = requests.get('https://api.vk.com/method/groups.getMembers', params=dict(
-            group_id=group_id,
-            offset=offset,
-            count=count,
-            fields='city' if city_id else '',
-            # access_token=ACCESS_TOKEN,
-            v=VERSION_ID,
-        ))
-        data = resp.json()
-        if 'error' in data and data['error']['error_msg'].startswith((
-            'Access denied',
-            'Access to group denied',
-        )):
-            break
-        try:
-            items = data['response']['items']
-        except:
-            sys.stderr.write(resp.text)
-            raise
-        time.sleep(.5)
-        if not items:
-            break
-        for item in items:
-            if city_id:
-                if 'city' in item and item['city']['id'] == city_id:
-                    yield item['id']
-            else:
-                yield item
+    for item in paginate(
+        'https://api.vk.com/method/groups.getMembers',
+        1000,
+        group_id=group_id,
+        fields='city' if city_id else '',
+    ):
+        if city_id:
+            if 'city' in item and item['city']['id'] == city_id:
+                yield item['id']
+        else:
+            yield item
 
 
 def vk_group_search(
@@ -203,12 +142,13 @@ def vk_group_search(
     # 3 — по отношению количества лайков к количеству пользователей;
     # 4 — по отношению количества комментариев к количеству пользователей;
     # 5 — по отношению количества записей в обсуждениях к кол-ву пользователей.
-    count=1000,
 ):
     """
     https://vk.com/dev/groups.search
     """
-    resp = requests.get('https://api.vk.com/method/groups.search', params=dict(
+    for item in paginate(
+        'https://api.vk.com/method/groups.search',
+        1000,
         q=q,
         type=type,
         country_id=country_id,
@@ -216,17 +156,35 @@ def vk_group_search(
         future=future,
         sort=sort,
         access_token=ACCESS_TOKEN,
-        v=VERSION_ID,
-        count=1000,
-    ))
-    try:
-        items = resp.json()['response']['items']
-    except:
-        sys.stderr.write(resp.text)
-        raise
-    for item in items:
+    ):
         yield item
-    time.sleep(.5)
+
+
+def paginate(url, count, **params):
+    for offset in xrange(0, sys.maxint, count):
+        if 'access_token' in params:
+            time.sleep(.5)
+        resp = requests.get(url, params=dict(
+            params,
+            offset=offset,
+            count=count,
+            v=VERSION_ID,
+        ))
+        data = resp.json()
+        if 'error' in data and data['error']['error_msg'].startswith((
+            'Access denied',
+            'Access to group denied',
+        )):
+            break
+        try:
+            items = data['response']['items']
+        except:
+            sys.stderr.write(resp.text)
+            raise
+        if not items:
+            break
+        for item in items:
+            yield item
 
 
 def format_dict(d):
