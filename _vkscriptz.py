@@ -71,17 +71,55 @@ def vk_wall(owner_id, count=100):
             v=VERSION_ID,
         ))
         data = resp.json()
-        # if 'error' in data and data['error']['error_msg'].startswith((
-        #     'Access denied',
-        #     'Access to group denied',
-        # )):
-        #     break
+        if 'error' in data and data['error']['error_msg'].startswith((
+            'Access denied',
+            'Access to group denied',
+        )):
+            break
         try:
             items = data['response']['items']
         except:
             sys.stderr.write(resp.text)
             raise
         # time.sleep(.1)
+        if not items:
+            break
+        for item in items:
+            yield item
+
+
+def vk_likes(owner_id, type, item_id, count=100):
+    """
+    https://vk.com/dev/likes.getList
+    """
+    assert type in (
+        'post',
+        'comment',
+        'photo',
+        'audio',
+        'video',
+        'note',
+        'photo_comment',
+        'video_comment',
+        'topic_comment',
+        'sitepage',
+    )
+    for offset in xrange(0, sys.maxint, count):
+        resp = requests.get('https://api.vk.com/method/likes.getList', params=dict(
+            owner_id=owner_id,
+            item_id=item_id,
+            type=type,
+            offset=offset,
+            count=count,
+            # access_token=ACCESS_TOKEN,
+            v=VERSION_ID,
+        ))
+        data = resp.json()
+        try:
+            items = data['response']['items']
+        except:
+            sys.stderr.write(resp.text)
+            raise
         if not items:
             break
         for item in items:
@@ -103,11 +141,6 @@ def vk_wall_comments(owner_id, post_id, preview_length=0, count=100):
             v=VERSION_ID,
         ))
         data = resp.json()
-        # if 'error' in data and data['error']['error_msg'].startswith((
-        #     'Access denied',
-        #     'Access to group denied',
-        # )):
-        #     break
         try:
             items = data['response']['items']
         except:
