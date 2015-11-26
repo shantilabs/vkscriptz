@@ -8,7 +8,6 @@ if __name__ == '__main__':
     for q in sys.argv[1:]:
         for item in vk_group_search(
             q.decode(coding),
-            sort=2,
             country_id=1,
         ):
             print(

@@ -58,13 +58,74 @@ USER_FIELDS = (
 )
 
 
+def vk_wall(owner_id, count=100):
+    """
+    https://vk.com/dev/wall.get
+    """
+    for offset in xrange(0, sys.maxint, count):
+        resp = requests.get('https://api.vk.com/method/wall.get', params=dict(
+            owner_id=owner_id,
+            offset=offset,
+            count=count,
+            # access_token=ACCESS_TOKEN,
+            v=VERSION_ID,
+        ))
+        data = resp.json()
+        # if 'error' in data and data['error']['error_msg'].startswith((
+        #     'Access denied',
+        #     'Access to group denied',
+        # )):
+        #     break
+        try:
+            items = data['response']['items']
+        except:
+            sys.stderr.write(resp.text)
+            raise
+        # time.sleep(.1)
+        if not items:
+            break
+        for item in items:
+            yield item
+
+
+def vk_wall_comments(owner_id, post_id, preview_length=0, count=100):
+    """
+    https://vk.com/dev/wall.getComments
+    """
+    for offset in xrange(0, sys.maxint, count):
+        resp = requests.get('https://api.vk.com/method/wall.getComments', params=dict(
+            owner_id=owner_id,
+            post_id=post_id,
+            offset=offset,
+            count=count,
+            preview_length=preview_length,
+            # access_token=ACCESS_TOKEN,
+            v=VERSION_ID,
+        ))
+        data = resp.json()
+        # if 'error' in data and data['error']['error_msg'].startswith((
+        #     'Access denied',
+        #     'Access to group denied',
+        # )):
+        #     break
+        try:
+            items = data['response']['items']
+        except:
+            sys.stderr.write(resp.text)
+            raise
+        # time.sleep(.1)
+        if not items:
+            break
+        for item in items:
+            yield item
+
+
 def vk_group_members(group_id, city_id=None, count=1000):
     """
     https://vk.com/dev/groups.getMembers
     """
     if city_id:
         city_id = int(city_id)
-    assert city_id
     for offset in xrange(0, sys.maxint, count):
         resp = requests.get('https://api.vk.com/method/groups.getMembers', params=dict(
             group_id=group_id,
@@ -132,6 +193,7 @@ def vk_group_search(
         raise
     for item in items:
         yield item
+    time.sleep(.5)
 
 
 def format_dict(d):
