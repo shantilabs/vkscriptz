@@ -6,7 +6,7 @@ $ ./vk_group_members.py shanti_shanti_shop | wc -l
 
 Участники только из Питера:
 ```bash
-CITY_ID=2 ./vk_group_members.py shanti_shanti_shop | wc -l
+$ CITY_ID=2 ./vk_group_members.py shanti_shanti_shop | wc -l
 ```
 
 Список групп по слову «логарифм»:
