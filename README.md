@@ -31,7 +31,7 @@ $ ./vk_group_search.py логарифм
 ```
 Все участники этих групп:
 ```bash
-$ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1 | sort | uniq`
+$ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1` | sort | uniq
 100212287
 1002637
 100590808
