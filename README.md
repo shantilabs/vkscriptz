@@ -1,5 +1,3 @@
-Скрипты для работы с vk.com и мб ещё с чем-то.
-
 Всего участников группы:
 ```bash
 $ ./vk_group_members.py shanti_shanti_shop | wc -l
