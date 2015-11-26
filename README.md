@@ -3,6 +3,12 @@
 $ ./vk_group_members.py shanti_shanti_shop | wc -l
 4075
 ```
+
+Участники только из Питера:
+```bash
+CITY_ID=2 ./vk_group_members.py shanti_shanti_shop | wc -l
+```
+
 Список групп по слову «логарифм»:
 ```bash
 $ ./vk_group_search.py логарифм
@@ -27,6 +33,7 @@ $ ./vk_group_search.py логарифм
 3346064	Бит — это двоичный логарифм вероятности равновероятных событий или сумма произведений вероятности на двоичный логарифм вероятности при разновероятных событиях
 1948920	На нас держится весь мир,ибо мы знаем что логарифм на логафрифм будет логарифм в квадрате!...
 ```
+
 Все участники этих групп:
 ```bash
 $ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1` | sort | uniq
@@ -45,6 +52,7 @@ $ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1` | sort
 105837047
 .....
 ```
+
 5 самых активных участников группы 107729497:
 ```bash
 $./vk_group_active_members.py 107729497 | sort | uniq -c | sort -dr | head -n 5
