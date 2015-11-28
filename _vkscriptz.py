@@ -129,6 +129,18 @@ def vk_group_members(group_id, city_id=None):
             yield item
 
 
+def vk_user_groups(user_id):
+    for item in paginate(
+        'https://api.vk.com/method/groups.get',
+        1000,
+        user_id=user_id,
+        extended=1,
+        fields='name,screen_name',
+        access_token=ACCESS_TOKEN,
+    ):
+        yield item
+
+
 def vk_group_search(
     q,
     type=None,
