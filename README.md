@@ -62,3 +62,14 @@ $./vk_group_active_members.py 107729497 | sort | uniq -c | sort -dr | head -n 5
    2 182722259
    1 322695257
    ```
+
+Cамые популярные группы среди участников группы 57314824:
+```bash
+$./vk_group_active_members.py `./vk_group_members.py 57314824` | sort | uniq -c | sort -dr | head -n 100
+   3 2150378
+   3 175382517
+   2 228737718
+   2 182722259
+   1 322695257
+  ```
+  

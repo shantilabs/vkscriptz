@@ -186,6 +186,7 @@ def paginate(url, count, **params):
         if 'error' in data and data['error']['error_msg'].startswith((
             'Access denied',
             'Access to group denied',
+            'Permission to perform this action is denied',
         )):
             break
         try:

@@ -20,4 +20,4 @@ if __name__ == '__main__':
             else:
                 print(user)
             n += 1
-        sys.stderr.write('({} found)\n'.format(n))
+        sys.stderr.write('({} member(s))\n'.format(n))
