@@ -176,13 +176,20 @@ def paginate(url, count, **params):
     for offset in xrange(0, sys.maxint, count):
         if 'access_token' in params:
             time.sleep(.5)
-        resp = requests.get(url, params=dict(
-            params,
-            offset=offset,
-            count=count,
-            v=VERSION_ID,
-        ))
-        data = resp.json()
+        while 1:
+            resp = requests.get(url, params=dict(
+                params,
+                offset=offset,
+                count=count,
+                v=VERSION_ID,
+            ))
+            data = resp.json()
+            if 'error' in data and data['error']['error_msg'].startswith(
+                'Too many requests',
+            ):
+                time.sleep(.5)
+                continue
+            break
         if 'error' in data and data['error']['error_msg'].startswith((
             'Access denied',
             'Access to group denied',
