@@ -9,7 +9,7 @@ from _vkscriptz import vk_group_members, format_dict, coding
 
 if __name__ == '__main__':
     for group_id in sys.argv[1:]:
-        sys.stderr.write('group#{}\n'.format(group_id))
+        sys.stderr.write('group#{}: '.format(group_id))
         n = 0
         for user in vk_group_members(
             group_id,
@@ -20,4 +20,4 @@ if __name__ == '__main__':
             else:
                 print(user)
             n += 1
-        sys.stderr.write('({} member(s))\n'.format(n))
+        sys.stderr.write('{} member(s)\n'.format(n))

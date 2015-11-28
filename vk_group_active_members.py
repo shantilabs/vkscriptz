@@ -7,7 +7,7 @@ from _vkscriptz import vk_wall, vk_wall_comments, vk_likes
 
 if __name__ == '__main__':
     for owner_id in sys.argv[1:]:
-        sys.stderr.write('group#{}\n'.format(owner_id))
+        sys.stderr.write('group#{}: '.format(owner_id))
         n = 0
         gid = '-' + owner_id
         for post in vk_wall(gid):
@@ -22,4 +22,4 @@ if __name__ == '__main__':
                 for like in vk_likes(gid, 'comment', comment['id']):
                     print(like)
                     n += 1
-        sys.stderr.write('({} found)\n'.format(n))
+        sys.stderr.write('{} active member(s)\n'.format(n))
