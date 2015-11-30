@@ -129,6 +129,17 @@ def vk_group_members(group_id, city_id=None):
             yield item
 
 
+def vk_instagrams(group_id):
+    for item in paginate(
+        'https://api.vk.com/method/groups.getMembers',
+        1000,
+        group_id=group_id,
+        fields='connections',
+    ):
+        if 'instagram' in item:
+            yield item['instagram']
+
+
 def vk_user_groups(user_id):
     for item in paginate(
         'https://api.vk.com/method/groups.get',
@@ -184,9 +195,10 @@ def paginate(url, count, **params):
                 v=VERSION_ID,
             ))
             data = resp.json()
-            if 'error' in data and data['error']['error_msg'].startswith(
+            if 'error' in data and data['error']['error_msg'].startswith((
                 'Too many requests',
-            ):
+                'Internal server error',
+            )):
                 time.sleep(.5)
                 continue
             break
