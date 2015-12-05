@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function
 import os
 import sys
 
-from _vkscriptz import vk_group_members, vk_are_members, format_dict, coding
+from _vkscriptz import vk_group_members, vk_are_members
 
 
 if __name__ == '__main__':

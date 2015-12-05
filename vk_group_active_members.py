@@ -5,6 +5,7 @@ import sys
 
 from _vkscriptz import vk_wall, vk_wall_comments, vk_likes
 
+
 if __name__ == '__main__':
     for owner_id in sys.argv[1:]:
         sys.stderr.write('group#{}: '.format(owner_id))

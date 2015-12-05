@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 
 import requests
@@ -6,31 +7,50 @@ import sys
 import time
 
 
+class JsonCredentials(object):
+    keys = (
+        'client_id',
+        'client_secret',
+        'access_token',
+    )
+
+    def __init__(self, fname):
+        self.fname = fname
+        if not os.path.exists(fname):
+            self.client_id = 5161445
+            self.client_secret = 'l6bLNsD6jvOwBpWZOxQG'
+            self.access_token = ''
+            self.save()
+        self.load()
+
+    def load(self):
+        with open(self.fname) as f:
+            for k, v in json.load(f).items():
+                if k in self.keys:
+                    setattr(self, k, v)
+
+    def save(self):
+        with open(self.fname, 'w') as f:
+            json.dump({k: getattr(self, k) for k in self.keys}, f)
+
+
 coding = sys.stdout.encoding or sys.stdin.encoding
 root = os.path.realpath(os.path.dirname(__file__))
+credentials = JsonCredentials(os.path.join(root, 'credentials.json'))
 
-CLIENT_ID = 5170022
-CLIENT_SECRET = 'tr1910mxsP9PIvsBaByQ'
 VERSION_ID = '5.40'
 
 
-ACCESS_TOKEN = ''
-access_token_txt = os.path.join(root, 'access_token.txt')
-if os.path.exists(access_token_txt):
-    ACCESS_TOKEN = open(access_token_txt).read().strip()
-
-
 def update_token(value):
-    global ACCESS_TOKEN
-    ACCESS_TOKEN = value
-    open(access_token_txt, 'w').write(value)
+    credentials.access_token = value
+    credentials.save()
 
 
 def refresh_token():
     resp = _get(
         'https://oauth.vk.com/access_token',
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
+        client_id=credentials.client_id,
+        client_secret=credentials.client_secret,
         grant_type='client_credentials',
         redirect_uri='http://nothing.ru/',
     )
@@ -90,15 +110,10 @@ def vk_info(user_ids):
     """
     https://vk.com/dev/users.get
     """
-    if not hasattr(user_ids, '__iter__'):
-        user_ids = [user_ids]
-    user_ids = map(str, user_ids)
-    chunk_size = 100
-    for offset in xrange(0, len(user_ids), chunk_size):
-        cur_ids = user_ids[offset:offset + chunk_size]
+    for cur_ids in _chunkize(user_ids):
         for item in list_request(
             'https://api.vk.com/method/users.get',
-            user_ids=','.join(cur_ids),
+            user_ids=','.join(map(str, cur_ids)),
         ):
             yield item
 
@@ -118,16 +133,11 @@ def vk_are_members(group_id, user_ids):
     """
     https://vk.com/dev/groups.isMember
     """
-    if not hasattr(user_ids, '__iter__'):
-        user_ids = [user_ids]
-    user_ids = map(str, user_ids)
-    chunk_size = 100
-    for offset in xrange(0, len(user_ids), chunk_size):
-        cur_ids = user_ids[offset:offset + chunk_size]
+    for cur_ids in _chunkize(user_ids):
         for item in list_request(
             'https://api.vk.com/method/groups.isMember',
             group_id=group_id,
-            user_ids=','.join(cur_ids),
+            user_ids=','.join(map(str, cur_ids)),
             extended=1,
         ):
             yield item
@@ -141,7 +151,7 @@ def vk_group_remove_member(group_id, user_id):
         'https://api.vk.com/method/groups.removeUser',
         group_id=group_id,
         user_id=user_id,
-        access_token=ACCESS_TOKEN,
+        access_token=credentials.access_token,
     )
     return 'response' in resp and resp['response'] == 1
 
@@ -223,7 +233,7 @@ def vk_user_groups(user_id):
         user_id=user_id,
         extended=1,
         fields='name,screen_name',
-        access_token=ACCESS_TOKEN,
+        access_token=credentials.access_token,
     ):
         yield item
 
@@ -254,7 +264,7 @@ def vk_group_search(
         city_id=city_id,
         future=future,
         sort=sort,
-        access_token=ACCESS_TOKEN,
+        access_token=credentials.access_token,
     ):
         yield item
 
@@ -316,10 +326,17 @@ def list_request(url, **params):
     try:
         items = data['response']
     except:
-        sys.stderr.write("no response in data: %s" % str(data))
+        sys.stderr.write("no response in data: {}".format(data))
         raise
     for item in items:
         yield item
+
+
+def _chunkize(ids, chunk_size=100):
+    if not hasattr(ids, '__iter__'):
+        ids = [ids]
+    for offset in xrange(0, len(ids), chunk_size):
+        yield ids[offset:offset + chunk_size]
 
 
 def format_dict(d):

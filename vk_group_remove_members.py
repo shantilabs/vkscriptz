@@ -13,7 +13,7 @@ if __name__ == '__main__':
     group_id = sys.argv[1]
     if not group_id.isdigit():
         gid = str(vk_group_info(group_id)['id'])
-        sys.stderr.write('Group %s resolved to ID %s\n' % (group_id, gid))
+        sys.stderr.write('Group {} resolved to ID {}\n'.format(group_id, gid))
         group_id = gid
         
     success, failed = (0, 0)
@@ -25,4 +25,4 @@ if __name__ == '__main__':
             success += 1
         else:
             failed += 1
-    sys.stderr.write('Success: %d, failed %d\n' % (success, failed))
+    sys.stderr.write('Success: {}, failed {}\n'.format(success, failed))

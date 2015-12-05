@@ -5,7 +5,7 @@ import os
 import sys
 from collections import defaultdict
 
-from _vkscriptz import vk_group_members, vk_are_members, format_dict, coding
+from _vkscriptz import vk_group_members, vk_are_members
 
 
 if __name__ == '__main__':
