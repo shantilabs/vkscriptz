@@ -91,6 +91,14 @@ def vk_info(user_ids):
         for item in list_request('https://api.vk.com/method/users.get', user_ids=','.join(cur_ids)):
             yield item
 
+def vk_group_info(group_id):
+    """
+    https://vk.com/dev/groups.getById
+    """
+    
+    arr = list(list_request('https://api.vk.com/method/groups.getById', group_id=group_id))
+    return arr[0]
+
 def vk_are_members(group_id, user_ids):
     """
     https://vk.com/dev/groups.isMember
@@ -109,8 +117,9 @@ def vk_group_remove_member(group_id, user_id):
     """
     https://vk.com/dev/groups.removeUser
     """
-    return _get('https://api.vk.com/method/groups.removeUser', 
-        group_id=group_id, user_id=user_id, access_token=ACCESS_TOKEN) == 1
+    resp = _get('https://api.vk.com/method/groups.removeUser', 
+        group_id=group_id, user_id=user_id, access_token=ACCESS_TOKEN)
+    return 'response' in resp and resp['response'] == 1
 
 def vk_likes(owner_id, type, item_id):
     """
@@ -242,7 +251,7 @@ def _get(url, **params):
         resp = requests.get(url, params=dict(
             params, v=VERSION_ID,
         ))
-        sys.stderr.write("> GET %s with %s: -> '%s'" % (url, repr(params), resp.text))
+        #sys.stderr.write("> GET %s with %s: -> '%s'" % (url, repr(params), resp.text))
         data = resp.json()
         if has_tmp_error(data):
             time.sleep(.5)
@@ -250,7 +259,7 @@ def _get(url, **params):
         break
     if has_access_error(data):
         sys.stderr.write(resp.text)
-        raise
+        raise Exception("access error: %s" % str(data['error']))
     return data
     
 def paginate(url, count, **params):
@@ -262,7 +271,7 @@ def paginate(url, count, **params):
         try:
             items = data['response']['items']
         except:
-            sys.stderr.write(resp.text)
+            sys.stderr.write("no items in data: %s" % str(data))
             raise
         if not items:
             break
@@ -274,7 +283,7 @@ def list_request(url, **params):
     try:
         items = data['response']
     except:
-        sys.stderr.write(resp.text)
+        sys.stderr.write("no response in data: %s" % str(data))
         raise
     for item in items:
         yield item

@@ -26,5 +26,6 @@ if __name__ == '__main__':
             matched[str(m)] += 1
     
     sys.stderr.write('%d member(s)\n' % len(matched))
-    for u, c in matched.iteritems():
+    lst = sorted(matched.items(), key=lambda p: p[1], reverse=True)
+    for u, c in lst:
         print("%s %d" % (u, c))
