@@ -10,9 +10,10 @@ coding = sys.stdout.encoding or sys.stdin.encoding
 root = os.path.realpath(os.path.dirname(__file__))
 code_txt = os.path.join(root, 'access_token.txt')
 
-CLIENT_ID = 5161445
-CLIENT_SECRET = 'l6bLNsD6jvOwBpWZOxQG'
+CLIENT_ID = 5170022
+CLIENT_SECRET = 'tr1910mxsP9PIvsBaByQ'
 VERSION_ID = '5.40'
+
 ACCESS_TOKEN = open(code_txt).read().strip() if os.path.exists(code_txt) else ''
 
 
@@ -21,6 +22,13 @@ def update_token(value):
     ACCESS_TOKEN = value
     open(code_txt, 'w').write(value)
 
+def refresh_token():
+    resp = _get("https://oauth.vk.com/access_token",
+        client_id=CLIENT_ID, client_secret=CLIENT_SECRET, 
+        grant_type='client_credentials', redirect_uri="http://nothing.ru/"
+    )
+    sys.stderr.write("> %s\n" % repr(resp))
+    update_token(resp['access_token'])
 
 USER_FIELDS = (
     'sex',
@@ -69,6 +77,49 @@ def vk_wall(owner_id):
     ):
         yield item
 
+def vk_info(user_ids):
+    """
+    https://vk.com/dev/users.get
+    """
+    if not hasattr(user_ids, '__iter__'):
+        user_ids = [user_ids]
+    user_ids = map(str, user_ids)
+    
+    chunk_size = 100
+    for offset in xrange(0, len(user_ids), chunk_size):
+        cur_ids = user_ids[offset : offset+chunk_size]
+        for item in list_request('https://api.vk.com/method/users.get', user_ids=','.join(cur_ids)):
+            yield item
+
+def vk_group_info(group_id):
+    """
+    https://vk.com/dev/groups.getById
+    """
+    
+    arr = list(list_request('https://api.vk.com/method/groups.getById', group_id=group_id))
+    return arr[0]
+
+def vk_are_members(group_id, user_ids):
+    """
+    https://vk.com/dev/groups.isMember
+    """
+    if not hasattr(user_ids, '__iter__'):
+        user_ids = [user_ids]
+    user_ids = map(str, user_ids)
+    chunk_size = 100
+    for offset in xrange(0, len(user_ids), chunk_size):
+        cur_ids = user_ids[offset : offset+chunk_size]
+        for item in list_request('https://api.vk.com/method/groups.isMember', 
+            group_id=group_id, user_ids=','.join(cur_ids), extended='1'):
+            yield item
+
+def vk_group_remove_member(group_id, user_id):
+    """
+    https://vk.com/dev/groups.removeUser
+    """
+    resp = _get('https://api.vk.com/method/groups.removeUser', 
+        group_id=group_id, user_id=user_id, access_token=ACCESS_TOKEN)
+    return 'response' in resp and resp['response'] == 1
 
 def vk_likes(owner_id, type, item_id):
     """
@@ -182,42 +233,60 @@ def vk_group_search(
     ):
         yield item
 
+def has_tmp_error(response_data):
+    return 'error' in response_data and response_data['error']['error_msg'].startswith((
+        'Too many requests',
+        'Internal server error',
+    ))
 
+def has_access_error(response_data):
+    return 'error' in response_data and response_data['error']['error_msg'].startswith((
+        'Access denied',
+        'Access to group denied',
+        'Permission to perform this action is denied',
+    ))
+    
+def _get(url, **params):
+    while 1:
+        resp = requests.get(url, params=dict(
+            params, v=VERSION_ID,
+        ))
+        #sys.stderr.write("> GET %s with %s: -> '%s'" % (url, repr(params), resp.text))
+        data = resp.json()
+        if has_tmp_error(data):
+            time.sleep(.5)
+            continue
+        break
+    if has_access_error(data):
+        sys.stderr.write(resp.text)
+        raise Exception("access error: %s" % str(data['error']))
+    return data
+    
 def paginate(url, count, **params):
     for offset in xrange(0, sys.maxint, count):
         if 'access_token' in params:
             time.sleep(.5)
-        while 1:
-            resp = requests.get(url, params=dict(
-                params,
-                offset=offset,
-                count=count,
-                v=VERSION_ID,
-            ))
-            data = resp.json()
-            if 'error' in data and data['error']['error_msg'].startswith((
-                'Too many requests',
-                'Internal server error',
-            )):
-                time.sleep(.5)
-                continue
-            break
-        if 'error' in data and data['error']['error_msg'].startswith((
-            'Access denied',
-            'Access to group denied',
-            'Permission to perform this action is denied',
-        )):
-            break
+        
+        data = _get(url, **dict(params, offset=offset, count=count))
         try:
             items = data['response']['items']
         except:
-            sys.stderr.write(resp.text)
+            sys.stderr.write("no items in data: %s" % str(data))
             raise
         if not items:
             break
         for item in items:
             yield item
 
+def list_request(url, **params):
+    data = _get(url, **params)
+    try:
+        items = data['response']
+    except:
+        sys.stderr.write("no response in data: %s" % str(data))
+        raise
+    for item in items:
+        yield item
 
 def format_dict(d):
     return '\t'.join('{}={}'.format(k, v or '""') for k, v in d.items())

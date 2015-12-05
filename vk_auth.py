@@ -16,7 +16,7 @@ if __name__ == '__main__':
             client_id=CLIENT_ID,
             redirect_uri='https://api.vk.com/blank.html#',
             display='page',
-            scope='offline,ads,messages,friends',
+            scope='offline,ads,messages,friends,groups',
             # response_type='code',
             response_type='token',
             v=VERSION_ID,

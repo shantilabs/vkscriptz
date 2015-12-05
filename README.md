@@ -72,4 +72,53 @@ $./vk_user_groups.py `./vk_group_members.py 57314824` | cut -f2 | sort | uniq -c
    2 182722259
    1 322695257
   ```
-  
+
+Список пользователей, входящих в группу seafever и в обе группы bikini_vk gulagrus
+```bash
+$ ./vk_common_group_members.py seafever bikini_vk gulagrus
+checking 2479 users for 2 other groups
+196 member(s)
+21577672
+21674663
+27280273
+29090245
+...
+```
+
+Список пользователей, входящих в группу seafever и одну из групп bikini_vk gulagrus
+```bash
+$ ./vk_common_group_members_any.py seafever bikini_vk gulagrus > /tmp/f.txt
+checking 2479 users for 2 other groups
+1056 member(s)
+249326601 2
+242226478 2
+228608499 2
+156544862 2
+102825268 2
+...
+```
+
+Список "мёртвых" (удалённых или заблокированных) пользователей из группы seafever
+```bash
+$ ./vk_group_dead_members.py seafever
+group seafever:  (2479 users) 549926
+559696
+1298650
+2089177
+3261207
+3623107
+...
+```
+
+Удaление пользователя из группы patr_kvarts
+```bash
+ $ ./vk_group_remove_members.py patr_kvarts 549926
+ Group patr_kvarts resolved to ID 47335978
+ Success: 1, failed 0
+```
+
+Сложный пример: Получение списка членов группы seafever, входящих в одну из "мусорных" групп из списка в файле:
+```bash
+$ cat sf.garbage_groups.txt |awk '{print $2}'| sed "s~^https://vk.com/~~" | sed "s~^club~~" | xargs ./vk_common_group_members_any.py seafever > sf.garbage.members.txt
+```
+
