@@ -1,17 +1,17 @@
 Всего участников группы:
 ```bash
-$ ./vk_group_members.py shanti_shanti_shop | wc -l
+$ ./vk.py group_members shanti_shanti_shop | wc -l
 4075
 ```
 
 Участники только из Питера:
 ```bash
-$ CITY_ID=2 ./vk_group_members.py shanti_shanti_shop | wc -l
+$ ./vk.py group_members --city_id=2 shanti_shanti_shop | wc -l
 ```
 
 Список групп по слову «логарифм»:
 ```bash
-$ ./vk_group_search.py логарифм
+$ ./vk.py group_search логарифм
 101410949	Функция натурального логарифма
 92530291	логарифмы
 75438437	Закрытая группа
@@ -36,7 +36,7 @@ $ ./vk_group_search.py логарифм
 
 Все участники этих групп:
 ```bash
-$ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1` | sort | uniq
+$ ./vk.py group_members `./vk.py group_search логарифм | cut -f1` | sort | uniq
 100212287
 1002637
 100590808
@@ -55,7 +55,7 @@ $ ./vk_group_members.py `./vk_group_search.py логарифм | cut -f1` | sort
 
 5 самых активных участников группы 107729497:
 ```bash
-$./vk_group_active_members.py 107729497 | sort | uniq -c | sort -nr | head -n 5
+$./vk.py group_active_members 107729497 | sort | uniq -c | sort -nr | head -n 5
    3 2150378
    3 175382517
    2 228737718
@@ -65,7 +65,7 @@ $./vk_group_active_members.py 107729497 | sort | uniq -c | sort -nr | head -n 5
 
 Cамые популярные группы среди участников группы 57314824:
 ```bash
-$./vk_user_groups.py `./vk_group_members.py 57314824` | cut -f2 | sort | uniq -c | sort -nr | head -n 100
+$./vk.py user_groups `./vk.py group_members 57314824` | cut -f2 | sort | uniq -c | sort -nr | head -n 100
    3 2150378
    3 175382517
    2 228737718
@@ -98,9 +98,9 @@ checking 2479 users for 2 other groups
 ...
 ```
 
-Список "мёртвых" (удалённых или заблокированных) пользователей из группы seafever
+Список «мёртвых» (удалённых или заблокированных) пользователей из группы seafever
 ```bash
-$ ./vk_group_dead_members.py seafever
+$ ./vk.py group_members --dead seafever
 group seafever:  (2479 users) 549926
 559696
 1298650

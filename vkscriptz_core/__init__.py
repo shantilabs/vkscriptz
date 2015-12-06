@@ -62,18 +62,6 @@ USER_FIELDS = (
 )
 
 
-def vk_wall(owner_id):
-    """
-    https://vk.com/dev/wall.get
-    """
-    for item in paginate(
-        'https://api.vk.com/method/wall.get',
-        100,
-        owner_id=owner_id,
-    ):
-        yield item
-
-
 def vk_info(user_ids):
     """
     https://vk.com/dev/users.get
@@ -122,46 +110,6 @@ def vk_group_remove_member(group_id, user_id):
         access_token=credentials.access_token,
     )
     return 'response' in resp and resp['response'] == 1
-
-
-def vk_likes(owner_id, type, item_id):
-    """
-    https://vk.com/dev/likes.getList
-    """
-    assert type in (
-        'post',
-        'comment',
-        'photo',
-        'audio',
-        'video',
-        'note',
-        'photo_comment',
-        'video_comment',
-        'topic_comment',
-        'sitepage',
-    )
-    for item in paginate(
-        'https://api.vk.com/method/likes.getList',
-        100,
-        owner_id=owner_id,
-        item_id=item_id,
-        type=type,
-    ):
-        yield item
-
-
-def vk_wall_comments(owner_id, post_id, preview_length=0):
-    """
-    https://vk.com/dev/wall.getComments
-    """
-    for item in paginate(
-        'https://api.vk.com/method/wall.getComments',
-        100,
-        owner_id=owner_id,
-        post_id=post_id,
-        preview_length=preview_length,
-    ):
-        yield item
 
 
 def vk_instagrams(group_id):

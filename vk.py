@@ -83,7 +83,7 @@ def group_search(query, country_id, city_id):
 
 
 @main.command(help='Участники групп')
-@click.argument('group_id', nargs=-1, required=True, type=int)
+@click.argument('group_id', nargs=-1, required=True)
 @click.option('--city_id', default=None, help='ID города', type=int)
 @click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
 def group_members(group_id, city_id, dead):
@@ -101,6 +101,28 @@ def group_members(group_id, city_id, dead):
             stdout('{}\n'.format(item['id']))
             n += 1
         stderr('{} member(s)\n'.format(n))
+
+
+@main.command(help='Самые активные участники')
+@click.argument('group_id', nargs=-1, required=True, type=int)
+def group_active_members(group_id):
+    for group_id in group_id:
+        stderr('group#{}: '.format(group_id))
+        n = 0
+        gid = -group_id
+        for post in vk.wall(gid):
+            for like in vk.likes(gid, 'post', post['id']):
+                if like > 0:
+                    stdout('{}\n'.format(like))
+                    n += 1
+            for comment in vk.wall_comments(gid, post['id']):
+                if comment['from_id'] > 0:
+                    stdout('{}\n'.format(comment['from_id']))
+                    n += 1
+                for like in vk.likes(gid, 'comment', comment['id']):
+                    stdout('{}\n'.format(like))
+                    n += 1
+        stderr('{} active member(s)\n'.format(n))
 
 
 if __name__ == '__main__':
