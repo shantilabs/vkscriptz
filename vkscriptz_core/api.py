@@ -116,6 +116,38 @@ class VkApi(object):
         ):
             yield item
 
+    def group_info(self, group_id):
+        """
+        https://vk.com/dev/groups.getById
+        """
+        return next(self._list_request(
+            'https://api.vk.com/method/groups.getById',
+            group_id=group_id,
+        ))
+
+    def user_info(self, user_ids):
+        """
+        https://vk.com/dev/users.get
+        """
+        for cur_ids in chunkize(user_ids):
+            for item in self._list_request(
+                'https://api.vk.com/method/users.get',
+                user_ids=','.join(map(str, cur_ids)),
+            ):
+                yield item
+
+    def group_remove_member(self, group_id, user_id):
+        """
+        https://vk.com/dev/groups.removeUser
+        """
+        resp = self._get(
+            'https://api.vk.com/method/groups.removeUser',
+            group_id=group_id,
+            user_id=user_id,
+            access_token=self.credentials.access_token,
+        )
+        return 'response' in resp and resp['response'] == 1
+
     def _sleep(self, sec=0.4):
         logger.debug('sleep %s', sec)
         time.sleep(sec)
@@ -150,6 +182,16 @@ class VkApi(object):
             raise AccessError()
         return data
 
+    def _list_request(self, url, **params):
+        data = self._get(url, **params)
+        try:
+            items = data['response']
+        except:
+            logger.warn('no response in data: %s', data)
+            raise
+        for item in items:
+            yield item
+
     def _has_tmp_error(self, data):
         return 'error' in data and data['error']['error_msg'].startswith((
             'Too many requests',
@@ -162,3 +204,10 @@ class VkApi(object):
             'Access to group denied',
             'Permission to perform this action is denied',
         ))
+
+
+def chunkize(ids, chunk_size=100):
+    if not hasattr(ids, '__iter__'):
+        ids = [ids]
+    for offset in xrange(0, len(ids), chunk_size):
+        yield ids[offset:offset + chunk_size]

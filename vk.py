@@ -13,6 +13,7 @@ from vkscriptz_core.api import VkApi
 from vkscriptz_core.credentials import JsonCredentials
 from vkscriptz_core.errors import AccessTokenRequired
 
+
 home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
 vk = VkApi(credentials)
@@ -25,6 +26,26 @@ def stderr(s):
 
 def stdout(s):
     sys.stdout.write(s.encode(coding))
+
+
+def force_group_id(gid):
+    if not gid.isdigit():
+        name = gid
+        gid = vk.group_info(gid)['id']
+        stderr('Group {} resolved to ID {}\n'.format(name, gid))
+    return gid
+
+
+def force_user_id(uid):
+    if not uid.isdigit():
+        name = uid
+        user = next(vk.user_info(uid), None)
+        if not user:
+            stderr('Unknown user {}\n'.format(uid))
+            sys.exit(1)
+        uid = ['id']
+        stderr('User {} resolved to ID {}\n'.format(name, uid))
+    return uid
 
 
 @click.group()
@@ -56,9 +77,9 @@ def auth():
 
 
 @main.command(help='Группы, в которых состоит пользователь/пользователи')
-@click.argument('user_id', nargs=-1, required=True, type=int)
+@click.argument('user_id', nargs=-1, required=True)
 def user_groups(user_id):
-    for user_id in user_id:
+    for user_id in map(force_user_id, user_id):
         stderr('user#{}: '.format(user_id))
         n = 0
         for item in vk.user_groups(user_id):
@@ -87,7 +108,7 @@ def group_search(query, country_id, city_id):
 @click.option('--city_id', default=None, help='ID города', type=int)
 @click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
 def group_members(group_id, city_id, dead):
-    for group_id in group_id:
+    for group_id in map(force_group_id, group_id):
         stderr('group#{}: '.format(group_id))
         n = 0
         for item in vk.group_members(group_id):
@@ -107,7 +128,7 @@ def group_members(group_id, city_id, dead):
 @click.argument('group_id', nargs=-1, required=True)
 @click.option('--city_id', default=None, help='ID города', type=int)
 def group_members_instagrams(group_id, city_id):
-    for group_id in group_id:
+    for group_id in map(force_group_id, group_id):
         stderr('group#{}: '.format(group_id))
         n = 0
         for item in vk.group_members(group_id):
@@ -126,9 +147,9 @@ def group_members_instagrams(group_id, city_id):
 
 # TODO: счётчики по количеству каментов
 @main.command(help='Самые активные участники')
-@click.argument('group_id', nargs=-1, required=True, type=int)
+@click.argument('group_id', nargs=-1, required=True)
 def group_active_members(group_id):
-    for group_id in group_id:
+    for group_id in map(force_group_id, group_id):
         stderr('group#{}: '.format(group_id))
         n = 0
         gid = -group_id
@@ -145,6 +166,20 @@ def group_active_members(group_id):
                     stdout('{}\n'.format(like))
                     n += 1
         stderr('{} active member(s)\n'.format(n))
+
+
+@main.command(help='Удаляет участников из группы')
+@click.argument('group_id', nargs=1, required=True)
+@click.argument('user_id', nargs=-1, required=True)
+def group_remove_members(group_id, user_id):
+    group_id = force_group_id(group_id)
+    success, failed = (0, 0)
+    for user_id in map(force_user_id, user_id):
+        if vk.group_remove_member(group_id, user_id):
+            success += 1
+        else:
+            failed += 1
+    stderr('Success: {}, failed {}\n'.format(success, failed))
 
 
 if __name__ == '__main__':
