@@ -56,7 +56,7 @@ def auth():
 
 
 @main.command(help='Группы, в которых состоит пользователь/пользователи')
-@click.argument('user_id', nargs=-1, required=True)
+@click.argument('user_id', nargs=-1, required=True, type=int)
 def user_groups(user_id):
     for user_id in user_id:
         stderr('user#{}: '.format(user_id))
@@ -72,8 +72,8 @@ def user_groups(user_id):
 
 @main.command(help='Поиск групп по названиям (ограничение ВК: 1000 групп)')
 @click.argument('query', nargs=1, required=True)
-@click.option('--country_id', default=1, help='ID страны')
-@click.option('--city_id', default=None, help='ID города')
+@click.option('--country_id', default=1, help='ID страны', type=int)
+@click.option('--city_id', default=None, help='ID города', type=int)
 def group_search(query, country_id, city_id):
     for item in vk.group_search(query, country_id=country_id, city_id=city_id):
         stdout('{}\t{}\n'.format(
@@ -83,14 +83,22 @@ def group_search(query, country_id, city_id):
 
 
 @main.command(help='Участники групп')
-@click.argument('group_id', nargs=-1, required=True)
-@click.option('--city_id', default=None, help='ID города')
-def group_members(group_id, city_id):
+@click.argument('group_id', nargs=-1, required=True, type=int)
+@click.option('--city_id', default=None, help='ID города', type=int)
+@click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
+def group_members(group_id, city_id, dead):
     for group_id in group_id:
         stderr('group#{}: '.format(group_id))
         n = 0
-        for user_id in vk.group_members(group_id, city_id=city_id):
-            stdout('{}\n'.format(user_id))
+        for item in vk.group_members(group_id):
+            if city_id and (
+                'city' not in item or
+                item['city']['id'] != city_id
+            ):
+                continue
+            if dead and 'deactivated' not in item:
+                continue
+            stdout('{}\n'.format(item['id']))
             n += 1
         stderr('{} member(s)\n'.format(n))
 

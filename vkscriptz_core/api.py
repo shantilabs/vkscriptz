@@ -52,23 +52,17 @@ class VkApi(object):
         ):
             yield item
 
-    def group_members(self, group_id, city_id=None):
+    def group_members(self, group_id):
         """
         https://vk.com/dev/groups.getMembers
         """
-        if city_id:
-            city_id = int(city_id)
         for item in self._paginate(
             'https://api.vk.com/method/groups.getMembers',
             1000,
             group_id=group_id,
-            fields='city' if city_id else '',
+            fields='city',
         ):
-            if city_id:
-                if 'city' in item and item['city']['id'] == city_id:
-                    yield item['id']
-            else:
-                yield item
+            yield item
 
     def _sleep(self, sec=0.4):
         logger.debug('sleep %s', sec)
