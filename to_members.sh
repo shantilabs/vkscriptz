@@ -4,5 +4,5 @@ for f in `find $1 -type f`; do
     dest=members/$f
     echo "$f => $dest"
     mkdir -p `dirname $dest`
-    ./vk_group_members.py `cat $f | cut -f1` | sort | uniq > $dest
+    ./vk.py group_members `cat $f | cut -f1` | sort | uniq > $dest
 done
