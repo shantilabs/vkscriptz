@@ -164,25 +164,6 @@ def vk_wall_comments(owner_id, post_id, preview_length=0):
         yield item
 
 
-def vk_group_members(group_id, city_id=None):
-    """
-    https://vk.com/dev/groups.getMembers
-    """
-    if city_id:
-        city_id = int(city_id)
-    for item in paginate(
-        'https://api.vk.com/method/groups.getMembers',
-        1000,
-        group_id=group_id,
-        fields='city' if city_id else '',
-    ):
-        if city_id:
-            if 'city' in item and item['city']['id'] == city_id:
-                yield item['id']
-        else:
-            yield item
-
-
 def vk_instagrams(group_id):
     for item in paginate(
         'https://api.vk.com/method/groups.getMembers',

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, print_function
+from __future__ import unicode_literals
 import os
 import sys
 import urllib
@@ -19,8 +19,12 @@ vk = VkApi(credentials)
 coding = sys.stdout.encoding or sys.stdin.encoding
 
 
-def write(s):
+def stderr(s):
     sys.stderr.write(s.encode(coding))
+
+
+def stdout(s):
+    sys.stdout.write(s.encode(coding))
 
 
 @click.group()
@@ -39,43 +43,56 @@ def auth():
         response_type='token',
         v=vk.VERSION_ID,
     )))
-    write('Браузер должен открыть страницу "https://api.vk.com/blank.html'
+    stdout('Браузер должен открыть страницу "https://api.vk.com/blank.html'
           '#access_token=<многобукв>". Надо скопировать все <многобукв> '
           'сюда, и нажать ENTER\n')
     result = raw_input('>').strip().split('&')[0]
     if result:
         credentials.access_token = result
         credentials.save()
-        write('отлично, сохранили всё в {}\n'.format(credentials.fname))
+        stdout('отлично, сохранили всё в {}\n'.format(credentials.fname))
     else:
-        write('не вышло? жалко :(\n')
+        stdout('не вышло? жалко :(\n')
 
 
-@main.command(help='Группы пользователя/пользователей')
+@main.command(help='Группы, в которых состоит пользователь/пользователи')
 @click.argument('user_id', nargs=-1, required=True)
 def user_groups(user_id):
     for user_id in user_id:
-        write('user#{}: '.format(user_id))
+        stderr('user#{}: '.format(user_id))
         n = 0
         for item in vk.user_groups(user_id):
-            write('{}\thttps://vk.com/{}\n'.format(
+            stdout('{}\thttps://vk.com/{}\n'.format(
                 item['id'],
                 item['screen_name'],
             ))
             n += 1
-        write('{} group(s)\n'.format(n))
+        stderr('{} group(s)\n'.format(n))
 
 
-@main.command(help='Поиск групп по названиям')
+@main.command(help='Поиск групп по названиям (ограничение ВК: 1000 групп)')
 @click.argument('query', nargs=1, required=True)
 @click.option('--country_id', default=1, help='ID страны')
 @click.option('--city_id', default=None, help='ID города')
 def group_search(query, country_id, city_id):
     for item in vk.group_search(query, country_id=country_id, city_id=city_id):
-        write('{}\t{}'.format(
+        stdout('{}\t{}\n'.format(
             item['id'],
             item['name'],
         ))
+
+
+@main.command(help='Участники групп')
+@click.argument('group_id', nargs=-1, required=True)
+@click.option('--city_id', default=None, help='ID города')
+def group_members(group_id, city_id):
+    for group_id in group_id:
+        stderr('group#{}: '.format(group_id))
+        n = 0
+        for user_id in vk.group_members(group_id, city_id=city_id):
+            stdout('{}\n'.format(user_id))
+            n += 1
+        stderr('{} member(s)\n'.format(n))
 
 
 if __name__ == '__main__':
