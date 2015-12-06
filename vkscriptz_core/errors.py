@@ -4,3 +4,7 @@ class VkApiError(Exception):
 
 class AccessError(VkApiError):
     pass
+
+
+class AccessTokenRequired(VkApiError):
+    pass

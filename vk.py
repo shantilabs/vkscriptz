@@ -11,7 +11,7 @@ import click
 
 from vkscriptz_core.api import VkApi
 from vkscriptz_core.credentials import JsonCredentials
-
+from vkscriptz_core.errors import AccessTokenRequired
 
 home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
@@ -43,16 +43,16 @@ def auth():
         response_type='token',
         v=vk.VERSION_ID,
     )))
-    stdout('Браузер должен открыть страницу "https://api.vk.com/blank.html'
-          '#access_token=<многобукв>". Надо скопировать все <многобукв> '
-          'сюда, и нажать ENTER\n')
+    stderr('Браузер должен открыть страницу "https://api.vk.com/blank.html'
+           '#access_token=<многобукв>". Надо скопировать все <многобукв> '
+           'сюда, и нажать ENTER\n')
     result = raw_input('>').strip().split('&')[0]
     if result:
         credentials.access_token = result
         credentials.save()
-        stdout('отлично, сохранили всё в {}\n'.format(credentials.fname))
+        stderr('отлично, сохранили всё в {}\n'.format(credentials.fname))
     else:
-        stdout('не вышло? жалко :(\n')
+        stderr('не вышло? жалко :(\n')
 
 
 @main.command(help='Группы, в которых состоит пользователь/пользователи')
@@ -148,4 +148,8 @@ def group_active_members(group_id):
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except AccessTokenRequired:
+        stderr(u'Сначала запустите {} auth\n'.format(sys.argv[0]))
+        sys.exit(1)

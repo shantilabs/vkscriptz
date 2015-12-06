@@ -4,8 +4,7 @@ import sys
 import requests
 import time
 
-from vkscriptz_core.errors import AccessError
-
+from vkscriptz_core.errors import AccessError, AccessTokenRequired
 
 logger = logging.getLogger('vk')
 
@@ -17,6 +16,8 @@ class VkApi(object):
         self.credentials = credentials
 
     def user_groups(self, user_id):
+        if not self.credentials.access_token:
+            raise AccessTokenRequired()
         for item in self._paginate(
             'https://api.vk.com/method/groups.get',
             1000,
@@ -39,6 +40,8 @@ class VkApi(object):
         """
         https://vk.com/dev/groups.search
         """
+        if not self.credentials.access_token:
+            raise AccessTokenRequired()
         for item in self._paginate(
             'https://api.vk.com/method/groups.search',
             1000,
