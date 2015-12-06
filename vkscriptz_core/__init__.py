@@ -1,61 +1,29 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+from os.path import expanduser
 
 import requests
 import sys
 import time
 
 
-class JsonCredentials(object):
-    keys = (
-        'client_id',
-        'client_secret',
-        'access_token',
-    )
 
-    def __init__(self, fname):
-        self.fname = fname
-        if not os.path.exists(fname):
-            self.client_id = 5161445
-            self.client_secret = 'l6bLNsD6jvOwBpWZOxQG'
-            self.access_token = ''
-            self.save()
-        self.load()
-
-    def load(self):
-        with open(self.fname) as f:
-            for k, v in json.load(f).items():
-                if k in self.keys:
-                    setattr(self, k, v)
-
-    def save(self):
-        with open(self.fname, 'w') as f:
-            json.dump({k: getattr(self, k) for k in self.keys}, f)
+# def update_token(value):
+#     credentials.access_token = value
+#     credentials.save()
 
 
-coding = sys.stdout.encoding or sys.stdin.encoding
-root = os.path.realpath(os.path.dirname(__file__))
-credentials = JsonCredentials(os.path.join(root, 'credentials.json'))
-
-VERSION_ID = '5.40'
-
-
-def update_token(value):
-    credentials.access_token = value
-    credentials.save()
-
-
-def refresh_token():
-    resp = _get(
-        'https://oauth.vk.com/access_token',
-        client_id=credentials.client_id,
-        client_secret=credentials.client_secret,
-        grant_type='client_credentials',
-        redirect_uri='http://nothing.ru/',
-    )
-    sys.stderr.write('> {}\n'.format(repr(resp)))
-    update_token(resp['access_token'])
+# def refresh_token():
+#     resp = _get(
+#         'https://oauth.vk.com/access_token',
+#         client_id=credentials.client_id,
+#         client_secret=credentials.client_secret,
+#         grant_type='client_credentials',
+#         redirect_uri='http://nothing.ru/',
+#     )
+#     sys.stderr.write('> {}\n'.format(repr(resp)))
+#     update_token(resp['access_token'])
 
 
 USER_FIELDS = (
