@@ -7,6 +7,27 @@ $ ./vk.py group_members shanti_shanti_shop | wc -l
 Участники только из Питера:
 ```bash
 $ ./vk.py group_members --city_id=2 shanti_shanti_shop | wc -l
+1200
+```
+
+Инстаграмы Питерских участников:
+```bash
+$ ./vk.py group_members_instagrams --city_id=2 shanti_shanti_shop
+https://www.instagram.com/romanov_sky/
+https://www.instagram.com/vvtdark/
+https://www.instagram.com/torvamessorem/
+https://www.instagram.com/nexus_vi/
+https://www.instagram.com/emelyanovslava/
+https://www.instagram.com/izot.kuzmin/
+https://www.instagram.com/klisov_maxim/
+https://www.instagram.com/lerrmar/
+https://www.instagram.com/ielefas/
+https://www.instagram.com/travel_druganov/
+https://www.instagram.com/yeneeto/
+https://www.instagram.com/vadshishkin/
+https://www.instagram.com/ungrome/
+https://www.instagram.com/anavagian/
+https://www.instagram.com/shamanic_boutique/
 ```
 
 Список групп по слову «логарифм»:

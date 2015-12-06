@@ -7,61 +7,6 @@ import requests
 import sys
 import time
 
-
-
-# def update_token(value):
-#     credentials.access_token = value
-#     credentials.save()
-
-
-# def refresh_token():
-#     resp = _get(
-#         'https://oauth.vk.com/access_token',
-#         client_id=credentials.client_id,
-#         client_secret=credentials.client_secret,
-#         grant_type='client_credentials',
-#         redirect_uri='http://nothing.ru/',
-#     )
-#     sys.stderr.write('> {}\n'.format(repr(resp)))
-#     update_token(resp['access_token'])
-
-
-USER_FIELDS = (
-    'sex',
-    'bdate',
-    'city',
-    'country',
-    'photo_50',
-    'photo_100',
-    'photo_200_orig',
-    'photo_200',
-    'photo_400_orig',
-    'photo_max',
-    'photo_max_orig',
-    'online',
-    'online_mobile',
-    'lists',
-    'domain',
-    'has_mobile',
-    'contacts',
-    'connections',
-    'site',
-    'education',
-    'universities',
-    'schools',
-    'can_post',
-    'can_see_all_posts',
-    'can_see_audio',
-    'can_write_private_message',
-    'status',
-    'last_seen',
-    # 'common_count',
-    'relation',
-    'relatives',
-    'counters',
-)
-
-
 def vk_info(user_ids):
     """
     https://vk.com/dev/users.get
@@ -110,17 +55,6 @@ def vk_group_remove_member(group_id, user_id):
         access_token=credentials.access_token,
     )
     return 'response' in resp and resp['response'] == 1
-
-
-def vk_instagrams(group_id):
-    for item in paginate(
-        'https://api.vk.com/method/groups.getMembers',
-        1000,
-        group_id=group_id,
-        fields='connections',
-    ):
-        if 'instagram' in item:
-            yield item['instagram']
 
 
 def list_request(url, **params):

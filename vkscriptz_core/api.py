@@ -60,7 +60,7 @@ class VkApi(object):
             'https://api.vk.com/method/groups.getMembers',
             1000,
             group_id=group_id,
-            fields='city',
+            fields='city,connections',
         ):
             yield item
 

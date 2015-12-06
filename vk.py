@@ -103,6 +103,28 @@ def group_members(group_id, city_id, dead):
         stderr('{} member(s)\n'.format(n))
 
 
+@main.command(help='Инстаграмы участников групп')
+@click.argument('group_id', nargs=-1, required=True)
+@click.option('--city_id', default=None, help='ID города', type=int)
+def group_members_instagrams(group_id, city_id):
+    for group_id in group_id:
+        stderr('group#{}: '.format(group_id))
+        n = 0
+        for item in vk.group_members(group_id):
+            if city_id and (
+                'city' not in item or
+                item['city']['id'] != city_id
+            ):
+                continue
+            if 'instagram' in item:
+                stdout('https://www.instagram.com/{}/\n'.format(
+                    item['instagram'],
+                ))
+                n += 1
+        stderr('{} member(s)\n'.format(n))
+
+
+# TODO: счётчики по количеству каментов
 @main.command(help='Самые активные участники')
 @click.argument('group_id', nargs=-1, required=True, type=int)
 def group_active_members(group_id):
