@@ -194,18 +194,6 @@ def vk_instagrams(group_id):
             yield item['instagram']
 
 
-def vk_user_groups(user_id):
-    for item in paginate(
-        'https://api.vk.com/method/groups.get',
-        1000,
-        user_id=user_id,
-        extended=1,
-        fields='name,screen_name',
-        access_token=credentials.access_token,
-    ):
-        yield item
-
-
 def vk_group_search(
     q,
     type=None,
@@ -235,58 +223,6 @@ def vk_group_search(
         access_token=credentials.access_token,
     ):
         yield item
-
-
-def has_tmp_error(response):
-    return 'error' in response and response['error']['error_msg'].startswith((
-        'Too many requests',
-        'Internal server error',
-    ))
-
-
-def has_access_error(response):
-    return 'error' in response and response['error']['error_msg'].startswith((
-        'Access denied',
-        'Access to group denied',
-        'Permission to perform this action is denied',
-    ))
-
-
-def _get(url, **params):
-    while 1:
-        resp = requests.get(url, params=dict(
-            params, v=VERSION_ID,
-        ))
-        # sys.stderr.write("> GET {} with {}: -> '{}'".format(
-        #     url,
-        #     repr(params),
-        #     resp.text,
-        # ))
-        data = resp.json()
-        if has_tmp_error(data):
-            time.sleep(.5)
-            continue
-        break
-    if has_access_error(data):
-        sys.stderr.write(resp.text)
-        raise Exception("access error: %s" % str(data['error']))
-    return data
-
-
-def paginate(url, count, **params):
-    for offset in xrange(0, sys.maxint, count):
-        if 'access_token' in params:
-            time.sleep(.5)
-        data = _get(url, **dict(params, offset=offset, count=count))
-        try:
-            items = data['response']['items']
-        except:
-            sys.stderr.write("no items in data: %s" % str(data))
-            raise
-        if not items:
-            break
-        for item in items:
-            yield item
 
 
 def list_request(url, **params):

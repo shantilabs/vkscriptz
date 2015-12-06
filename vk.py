@@ -15,12 +15,12 @@ from vkscriptz_core.credentials import JsonCredentials
 
 home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
-vk_api = VkApi(credentials)
+vk = VkApi(credentials)
 coding = sys.stdout.encoding or sys.stdin.encoding
 
 
-def writeln(s):
-    sys.stderr.write((s + '\n').encode(coding))
+def write(s):
+    sys.stderr.write(s.encode(coding))
 
 
 @click.group()
@@ -28,7 +28,7 @@ def main():
     pass
 
 
-@main.command(help='Генерирует токен для доступа')
+@main.command(help='Создать токен для доступа')
 def auth():
     webbrowser.open('https://oauth.vk.com/authorize?' + urllib.urlencode(dict(
         client_id=credentials.client_id,
@@ -37,18 +37,33 @@ def auth():
         scope='offline,ads,messages,friends',
         # response_type='code',
         response_type='token',
-        v=vk_api.VERSION_ID,
+        v=vk.VERSION_ID,
     )))
-    writeln('Браузер должен открыть страницу "https://api.vk.com/blank.html'
-            '#access_token=<многобукв>". Надо скопировать все <многобукв> '
-            'сюда, и нажать ENTER')
+    write('Браузер должен открыть страницу "https://api.vk.com/blank.html'
+          '#access_token=<многобукв>". Надо скопировать все <многобукв> '
+          'сюда, и нажать ENTER\n')
     result = raw_input('>').strip().split('&')[0]
     if result:
         credentials.access_token = result
         credentials.save()
-        writeln('отлично, сохранили всё в {}'.format(credentials.fname))
+        write('отлично, сохранили всё в {}\n'.format(credentials.fname))
     else:
-        writeln('не вышло? жалко :(')
+        write('не вышло? жалко :(\n')
+
+
+@main.command(help='Группы пользователя/пользователей')
+@click.argument('user_id', nargs=-1, required=True)
+def user_groups(user_id):
+    for user_id in user_id:
+        write('user#{}: '.format(user_id))
+        n = 0
+        for item in vk.user_groups(user_id):
+            write('{}\thttps://vk.com/{}\n'.format(
+                item['id'],
+                item['screen_name'],
+            ))
+            n += 1
+        write('{} group(s)\n'.format(n))
 
 
 if __name__ == '__main__':
