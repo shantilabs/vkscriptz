@@ -66,5 +66,17 @@ def user_groups(user_id):
         write('{} group(s)\n'.format(n))
 
 
+@main.command(help='Поиск групп по названиям')
+@click.argument('query', nargs=1, required=True)
+@click.option('--country_id', default=1, help='ID страны')
+@click.option('--city_id', default=None, help='ID города')
+def group_search(query, country_id, city_id):
+    for item in vk.group_search(query, country_id=country_id, city_id=city_id):
+        write('{}\t{}'.format(
+            item['id'],
+            item['name'],
+        ))
+
+
 if __name__ == '__main__':
     main()

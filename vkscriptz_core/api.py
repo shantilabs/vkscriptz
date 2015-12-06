@@ -6,6 +6,7 @@ import time
 
 from vkscriptz_core.errors import AccessError
 
+
 logger = logging.getLogger('vk')
 
 
@@ -26,6 +27,31 @@ class VkApi(object):
         ):
             yield item
 
+    def group_search(
+        self,
+        q,
+        type=None,
+        country_id=None,
+        city_id=None,
+        future=None,
+        sort=0,
+    ):
+        """
+        https://vk.com/dev/groups.search
+        """
+        for item in self._paginate(
+            'https://api.vk.com/method/groups.search',
+            1000,
+            q=q,
+            type=type,
+            country_id=country_id,
+            city_id=city_id,
+            future=future,
+            sort=sort,
+            access_token=self.credentials.access_token,
+        ):
+            yield item
+
     def _sleep(self, sec=0.4):
         logger.debug('sleep %s', sec)
         time.sleep(sec)
@@ -38,7 +64,7 @@ class VkApi(object):
             try:
                 items = data['response']['items']
             except:
-                sys.stderr.write("no items in data: %s" % str(data))
+                logger.warn('no items in data: %r', data)
                 raise
             if not items:
                 break

@@ -194,37 +194,6 @@ def vk_instagrams(group_id):
             yield item['instagram']
 
 
-def vk_group_search(
-    q,
-    type=None,
-    country_id=None,
-    city_id=None,
-    future=None,
-    sort=0,
-    # 0 — по умолчанию (аналогично результатам поиска в полной версии сайта);
-    # 1 — по скорости роста;
-    # 2 — по отношению дневной посещаемости к количеству пользователей;
-    # 3 — по отношению количества лайков к количеству пользователей;
-    # 4 — по отношению количества комментариев к количеству пользователей;
-    # 5 — по отношению количества записей в обсуждениях к кол-ву пользователей.
-):
-    """
-    https://vk.com/dev/groups.search
-    """
-    for item in paginate(
-        'https://api.vk.com/method/groups.search',
-        1000,
-        q=q,
-        type=type,
-        country_id=country_id,
-        city_id=city_id,
-        future=future,
-        sort=sort,
-        access_token=credentials.access_token,
-    ):
-        yield item
-
-
 def list_request(url, **params):
     data = _get(url, **params)
     try:
