@@ -109,9 +109,12 @@ def group_search(query, country_id, city_id):
 @click.argument('group_id', nargs=-1, required=True)
 @click.option('--city_id', default=None, help='ID города', type=int)
 @click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
-@click.option('--common', default=False, help='Только общие', is_flag=True)
-def group_members(group_id, city_id, dead, common):
+@click.option('--min-intersection', default=1,
+              help='Участники минимум N групп', type=int)
+def group_members(group_id, city_id, dead, min_intersection):
     num_groups = len(group_id)
+    if min_intersection == 0:
+        min_intersection = num_groups
     counter = Counter() if num_groups > 1 else None
     for group_id in map(force_group_id, group_id):
         stderr('group#{}: '.format(group_id))
@@ -137,11 +140,9 @@ def group_members(group_id, city_id, dead, common):
         stderr('{} member(s)\n'.format(n))
     if counter is not None:
         for uid, num in sorted(counter.items(), key=lambda (k, v): (-v, k)):
-            if common:
-                if num == num_groups:
-                    stdout('{}\n'.format(uid))
-            else:
-                stdout('{}\t{}\n'.format(uid, num))
+            if min_intersection > 0 and num < min_intersection:
+                continue
+            stdout('{}\t{}\n'.format(uid, num))
 
 
 @main.command(help='Инстаграмы участников групп')

@@ -99,7 +99,7 @@ $./vk.py user_groups `./vk.py group_members 57314824` | cut -f2 | sort | uniq -c
 
 Список пользователей, входящих в группу `seafever` и в обе группы `bikini_vk` + `gulagrus`
 ```bash
-$ ./vk.py group_members --common seafever bikini_vk gulagrus
+$ ./vk.py group_members --min-intersection=3 seafever bikini_vk gulagrus
 Group seafever resolved to ID 35274426
 Group bikini_vk resolved to ID 48625501
 Group gulagrus resolved to ID 44616045
@@ -138,12 +138,12 @@ group seafever:  (2479 users) 549926
 
 Удaление пользователя из группы patr_kvarts
 ```bash
- $ ./vk_group_remove_members.py patr_kvarts 549926
+ $ ./vk.py group_remove_members patr_kvarts 549926
  Group patr_kvarts resolved to ID 47335978
  Success: 1, failed 0
 ```
 
 Сложный пример: Получение списка членов группы seafever, входящих в одну из «мусорных» групп из списка в файле:
 ```bash
-$ cat sf.garbage_groups.txt |awk '{print $2}'| sed "s~^https://vk.com/~~" | sed "s~^club~~" | xargs ./vk_common_group_members_any.py seafever > sf.garbage.members.txt
+$ cat sf.garbage_groups.txt | awk '{print $2}' | sed "s~^https://vk.com/~~" | sed "s~^club~~" | xargs ./vk.py group_members seafever > sf.garbage.members.txt
 ```
