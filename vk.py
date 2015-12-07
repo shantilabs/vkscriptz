@@ -5,14 +5,14 @@ import os
 import sys
 import urllib
 import webbrowser
+from collections import Counter
 from os.path import expanduser
 
 import click
 
 from vkscriptz_core.api import VkApi
 from vkscriptz_core.credentials import JsonCredentials
-from vkscriptz_core.errors import AccessTokenRequired
-
+from vkscriptz_core.errors import AccessTokenRequired, AccessError
 
 home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
@@ -29,7 +29,9 @@ def stdout(s):
 
 
 def force_group_id(gid):
-    if not gid.isdigit():
+    if gid.isdigit():
+        gid = int(gid)
+    else:
         name = gid
         gid = vk.group_info(gid)['id']
         stderr('Group {} resolved to ID {}\n'.format(name, gid))
@@ -76,7 +78,7 @@ def auth():
         stderr('не вышло? жалко :(\n')
 
 
-@main.command(help='Группы, в которых состоит пользователь/пользователи')
+@main.command(help='Группы пользователя')
 @click.argument('user_id', nargs=-1, required=True)
 def user_groups(user_id):
     for user_id in map(force_user_id, user_id):
@@ -91,7 +93,7 @@ def user_groups(user_id):
         stderr('{} group(s)\n'.format(n))
 
 
-@main.command(help='Поиск групп по названиям (ограничение ВК: 1000 групп)')
+@main.command(help='Поиск групп по названиям (до 1000 групп)')
 @click.argument('query', nargs=1, required=True)
 @click.option('--country_id', default=1, help='ID страны', type=int)
 @click.option('--city_id', default=None, help='ID города', type=int)
@@ -99,7 +101,7 @@ def group_search(query, country_id, city_id):
     for item in vk.group_search(query, country_id=country_id, city_id=city_id):
         stdout('{}\t{}\n'.format(
             item['id'],
-            item['name'],
+            item['name'].replace('\n', ' '),
         ))
 
 
@@ -107,21 +109,39 @@ def group_search(query, country_id, city_id):
 @click.argument('group_id', nargs=-1, required=True)
 @click.option('--city_id', default=None, help='ID города', type=int)
 @click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
-def group_members(group_id, city_id, dead):
+@click.option('--common', default=False, help='Только общие', is_flag=True)
+def group_members(group_id, city_id, dead, common):
+    num_groups = len(group_id)
+    counter = Counter() if num_groups > 1 else None
     for group_id in map(force_group_id, group_id):
         stderr('group#{}: '.format(group_id))
         n = 0
-        for item in vk.group_members(group_id):
-            if city_id and (
-                'city' not in item or
-                item['city']['id'] != city_id
-            ):
-                continue
-            if dead and 'deactivated' not in item:
-                continue
-            stdout('{}\n'.format(item['id']))
-            n += 1
+        try:
+            for item in vk.group_members(group_id):
+                if city_id and (
+                    'city' not in item or
+                    item['city']['id'] != city_id
+                ):
+                    continue
+                if dead and 'deactivated' not in item:
+                    continue
+                uid = item['id']
+                if counter is None:
+                    stdout('{}\n'.format(uid))
+                else:
+                    counter[uid] += 1
+                n += 1
+        except AccessError:
+            stderr('error: private group\n')
+            continue
         stderr('{} member(s)\n'.format(n))
+    if counter is not None:
+        for uid, num in sorted(counter.items(), key=lambda (k, v): (-v, k)):
+            if common:
+                if num == num_groups:
+                    stdout('{}\n'.format(uid))
+            else:
+                stdout('{}\t{}\n'.format(uid, num))
 
 
 @main.command(help='Инстаграмы участников групп')
