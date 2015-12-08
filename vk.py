@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+import logging
 import os
 import sys
 import urllib
@@ -18,6 +20,7 @@ home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
 vk = VkApi(credentials)
 coding = sys.stdout.encoding or sys.stdin.encoding
+logging.basicConfig(level=logging.WARN, stream=sys.stderr)
 
 
 def stderr(s):
@@ -61,7 +64,14 @@ def auth():
         client_id=credentials.client_id,
         redirect_uri='https://api.vk.com/blank.html#',
         display='page',
-        scope='offline,ads,messages,friends',
+        scope=','.join((
+            'offline',
+            'ads',
+            'messages',
+            'friends',
+            'groups',
+            'stats',
+        )),
         # response_type='code',
         response_type='token',
         v=vk.VERSION_ID,
@@ -84,12 +94,16 @@ def user_groups(user_id):
     for user_id in map(force_user_id, user_id):
         stderr('user#{}: '.format(user_id))
         n = 0
-        for item in vk.user_groups(user_id):
-            stdout('{}\thttps://vk.com/{}\n'.format(
-                item['id'],
-                item['screen_name'],
-            ))
-            n += 1
+        try:
+            for item in vk.user_groups(user_id):
+                stdout('{}\thttps://vk.com/{}\n'.format(
+                    item['id'],
+                    item['screen_name'],
+                ))
+                n += 1
+        except AccessError:
+            stderr('error: private group list\n')
+            continue
         stderr('{} group(s)\n'.format(n))
 
 
