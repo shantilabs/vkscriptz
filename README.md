@@ -97,7 +97,7 @@ $./vk.py user_groups `./vk.py group_members 57314824` | cut -f2 | sort | uniq -c
    1 322695257
   ```
 
-Список пользователей, входящих в группу `seafever` и в обе группы `bikini_vk` + `gulagrus`
+Список пользователей, входящих в группу `seafever` и в обе группы `bikini_vk` + `gulagrus`:
 ```bash
 $ ./vk.py group_members --min-intersection=3 seafever bikini_vk gulagrus
 Group seafever resolved to ID 35274426
@@ -124,7 +124,7 @@ group#44616045: 1774 member(s)
 ...
 ```
 
-Список «мёртвых» (удалённых или заблокированных) пользователей из группы seafever
+Список «мёртвых» (удалённых или заблокированных) пользователей из группы seafever:
 ```bash
 $ ./vk.py group_members --dead seafever
 group seafever:  (2479 users) 549926
@@ -136,11 +136,16 @@ group seafever:  (2479 users) 549926
 ...
 ```
 
-Удaление пользователя из группы patr_kvarts
+Удaление пользователя из группы patr_kvarts:
 ```bash
  $ ./vk.py group_remove_members patr_kvarts 549926
  Group patr_kvarts resolved to ID 47335978
  Success: 1, failed 0
+```
+
+Чистим группу от удалённых:
+```bash
+ $ ./vk.py group_remove_members shantichai `./vk.py group_members --dead shantichai`
 ```
 
 Сложный пример: Получение списка членов группы seafever, входящих в одну из «мусорных» групп из списка в файле:
