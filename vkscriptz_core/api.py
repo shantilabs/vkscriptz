@@ -146,9 +146,10 @@ class VkApi(object):
             user_id=user_id,
             access_token=self.credentials.access_token,
         )
+        self._sleep()
         return 'response' in resp and resp['response'] == 1
 
-    def _sleep(self, sec=0.4):
+    def _sleep(self, sec=0.33):
         logger.debug('sleep %s', sec)
         time.sleep(sec)
 
