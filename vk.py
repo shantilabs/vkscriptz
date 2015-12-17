@@ -224,14 +224,18 @@ def group_remove_members(group_id, user_id):
 def group_album_stat(group_id, album_id, members_only):
     group_id = force_group_id(group_id)
     if members_only:
+        stderr('members: ')
         members = {x['id'] for x in vk.group_members(group_id)}
+        stderr('{}\n'.format(len(members)))
     else:
         members = {}
     result = []
     for photo in vk.get_album_photos(-group_id, album_id):
+        stderr('photo#{}: '.format(photo['id']))
         likes = {x for x in vk.likes(-group_id, 'photo', photo['id'])}
         if members_only:
             likes = likes & members
+        stderr('{}\n'.format(len(likes)))
         result.append({
             'link': 'https://vk.com/photo-{}_{}'.format(group_id, photo['id']),
             'n_likes': len(likes),

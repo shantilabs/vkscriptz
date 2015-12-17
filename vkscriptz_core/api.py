@@ -165,7 +165,7 @@ class VkApi(object):
 
     def _paginate(self, url, count, **params):
         for offset in xrange(0, sys.maxint, count):
-            if 'access_token' in params:
+            if 'access_token' in params and offset:
                 self._sleep()
             data = self._get(url, **dict(params, offset=offset, count=count))
             try:
