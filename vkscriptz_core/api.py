@@ -136,6 +136,16 @@ class VkApi(object):
             ):
                 yield item
 
+    def get_album_photos(self, owner_id, album_id):
+        for item in self._paginate(
+            'https://api.vk.com/method/photos.get',
+            1000,
+            owner_id=owner_id,
+            album_id=album_id,
+            access_token=self.credentials.access_token,
+        ):
+            yield item
+
     def group_remove_member(self, group_id, user_id):
         """
         https://vk.com/dev/groups.removeUser

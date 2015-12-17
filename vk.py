@@ -217,6 +217,30 @@ def group_remove_members(group_id, user_id):
     stderr('Success: {}, failed {}\n'.format(success, failed))
 
 
+@main.command(help='Статистика лайков в альбоме')
+@click.argument('group_id', nargs=1, required=True)
+@click.argument('album_id', nargs=1, required=True)
+@click.option('--members_only', default=False, type=bool, is_flag=True)
+def group_album_stat(group_id, album_id, members_only):
+    group_id = force_group_id(group_id)
+    if members_only:
+        members = {x['id'] for x in vk.group_members(group_id)}
+    else:
+        members = {}
+    result = []
+    for photo in vk.get_album_photos(-group_id, album_id):
+        likes = {x for x in vk.likes(-group_id, 'photo', photo['id'])}
+        if members_only:
+            likes = likes & members
+        result.append({
+            'link': 'https://vk.com/photo-{}_{}'.format(group_id, photo['id']),
+            'n_likes': len(likes),
+        })
+    result.sort(key=lambda d: -d['n_likes'])
+    for d in result:
+        stdout('{link}\t{n_likes}\n'.format(**d))
+
+
 if __name__ == '__main__':
     try:
         main()
