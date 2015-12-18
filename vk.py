@@ -221,7 +221,7 @@ def group_remove_members(group_id, user_id):
 @click.argument('group_id', nargs=1, required=True)
 @click.option('--max_user_friends', default=1000, type=int)  # накрученные акки
 @click.option('--min_friends_in_group', default=2, type=int)
-@click.option('--human', default=False, type=bool, is_flag=False)
+@click.option('--human', default=False, type=bool, is_flag=True)
 def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
     group_id = force_group_id(group_id)
     counter = Counter()
