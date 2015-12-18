@@ -217,6 +217,37 @@ def group_remove_members(group_id, user_id):
     stderr('Success: {}, failed {}\n'.format(success, failed))
 
 
+@main.command(help='Те, у кого друзья в группе')
+@click.argument('group_id', nargs=1, required=True)
+@click.option('--max_user_friends', default=1000, type=int)  # накрученные акки
+@click.option('--min_friends_in_group', default=2, type=int)
+@click.option('--human', default=False, type=bool, is_flag=False)
+def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
+    group_id = force_group_id(group_id)
+    counter = Counter()
+    members = []
+    for i, member in enumerate(vk.group_members(group_id, skip_dead=True),
+                               start=1):
+        stderr('{}. https://vk.com/id{} '.format(i, member['id']))
+        friends = list(vk.friends(member['id']))
+        stderr('{} friend(s)\n'.format(len(friends)))
+        if max_user_friends and len(friends) > max_user_friends:
+            stderr('...skip\n')
+            continue
+        for friend in friends:
+            counter[friend['id']] += 1
+        members.append(member['id'])
+    for member_id in members:
+        counter.pop(member_id, None)
+    for uid, num in sorted(counter.items(), key=lambda (k, v): (-v, k)):
+        if num < min_friends_in_group:
+            continue
+        if human:
+            stdout('https://vk.com/id{}\t{}\n'.format(uid, num))
+        else:
+            stdout('{}\n'.format(uid))
+
+
 @main.command(help='Статистика лайков в альбоме')
 @click.argument('group_id', nargs=1, required=True)
 @click.argument('album_id', nargs=1, required=True)

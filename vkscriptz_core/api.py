@@ -55,7 +55,16 @@ class VkApi(object):
         ):
             yield item
 
-    def group_members(self, group_id):
+    def friends(self, user_id):
+        for item in self._paginate(
+            'https://api.vk.com/method/friends.get',
+            1000,
+            user_id=user_id,
+            fields='city,connections',
+        ):
+            yield item
+
+    def group_members(self, group_id, skip_dead=False):
         """
         https://vk.com/dev/groups.getMembers
         """
@@ -65,6 +74,8 @@ class VkApi(object):
             group_id=group_id,
             fields='city,connections',
         ):
+            if skip_dead and 'deactivated' in item:
+                continue
             yield item
 
     def likes(self, owner_id, type, item_id):
