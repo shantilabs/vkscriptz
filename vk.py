@@ -256,7 +256,7 @@ def group_album_stat(group_id, album_id, members_only):
     group_id = force_group_id(group_id)
     if members_only:
         stderr('members: ')
-        members = {x['id'] for x in vk.group_members(group_id)}
+        members = {x['id'] for x in vk.group_members(group_id, skip_dead=True)}
         stderr('{}\n'.format(len(members)))
     else:
         members = {}
