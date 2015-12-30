@@ -1,6 +1,7 @@
 import logging
 import sys
 
+import datetime
 import requests
 import time
 
@@ -146,6 +147,16 @@ class VkApi(object):
                 user_ids=','.join(map(str, cur_ids)),
             ):
                 yield item
+
+    def dialogs(self):
+        for item in self._paginate(
+            'https://api.vk.com/method/messages.getDialogs',
+            200,
+            access_token=self.credentials.access_token,
+        ):
+            item['message']['date'] = \
+                datetime.datetime.fromtimestamp(item['message']['date'])
+            yield item
 
     def get_album_photos(self, owner_id, album_id):
         for item in self._paginate(

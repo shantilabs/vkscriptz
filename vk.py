@@ -248,6 +248,16 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
             stdout('{}\n'.format(uid))
 
 
+@main.command(help='Диалоги')
+def dialogs():
+    for item in vk.dialogs():
+        stdout('{} – {} - {}\n'.format(
+            item['message']['date'],
+            item['message']['read_state'],
+            item['message']['body'],
+        ))
+
+
 @main.command(help='Статистика лайков в альбоме')
 @click.argument('group_id', nargs=1, required=True)
 @click.argument('album_id', nargs=1, required=True)
