@@ -42,7 +42,7 @@ def force_group_id(gid):
 
 
 def force_user_id(uid):
-    if not uid.isdigit():
+    if isinstance(uid, basestring) and not uid.isdigit():
         name = uid
         user = next(vk.user_info(uid), None)
         if not user:
@@ -205,10 +205,16 @@ def group_active_members(group_id):
 
 @main.command(help='Удаляет участников из группы')
 @click.argument('group_id', nargs=1, required=True)
-@click.argument('user_id', nargs=-1, required=True)
-def group_remove_members(group_id, user_id):
+@click.argument('user_id', nargs=-1, required=False)
+@click.option('--dead', default=False, help='Только мёртвые', is_flag=True)
+def group_remove_members(group_id, user_id, dead):
     group_id = force_group_id(group_id)
     success, failed = (0, 0)
+    if dead:
+        user_id = list(user_id)
+        for item in vk.group_members(group_id):
+            if 'deactivated' in item:
+                user_id.append(item['id'])
     for user_id in map(force_user_id, user_id):
         if vk.group_remove_member(group_id, user_id):
             success += 1
@@ -262,7 +268,8 @@ def dialogs():
 @click.argument('group_id', nargs=1, required=True)
 @click.argument('album_id', nargs=1, required=True)
 @click.option('--members_only', default=False, type=bool, is_flag=True)
-def group_album_stat(group_id, album_id, members_only):
+@click.option('--is_group', default=True, type=bool)
+def group_album_stat(group_id, album_id, members_only, is_group):
     group_id = force_group_id(group_id)
     if members_only:
         stderr('members: ')
@@ -271,14 +278,16 @@ def group_album_stat(group_id, album_id, members_only):
     else:
         members = {}
     result = []
-    for photo in vk.get_album_photos(-group_id, album_id):
+    if is_group:
+        group_id *= -1
+    for photo in vk.get_album_photos(group_id, album_id):
         stderr('photo#{}: '.format(photo['id']))
-        likes = {x for x in vk.likes(-group_id, 'photo', photo['id'])}
+        likes = {x for x in vk.likes(group_id, 'photo', photo['id'])}
         if members_only:
             likes = likes & members
         stderr('{}\n'.format(len(likes)))
         result.append({
-            'link': 'https://vk.com/photo-{}_{}'.format(group_id, photo['id']),
+            'link': 'https://vk.com/photo{}_{}'.format(group_id, photo['id']),
             'n_likes': len(likes),
         })
     result.sort(key=lambda d: -d['n_likes'])

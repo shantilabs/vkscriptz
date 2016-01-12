@@ -69,12 +69,12 @@ class VkApi(object):
         """
         https://vk.com/dev/groups.getMembers
         """
-        for item in self._paginate(
+        for i, item in enumerate(self._paginate(
             'https://api.vk.com/method/groups.getMembers',
             1000,
             group_id=group_id,
             fields='city,connections',
-        ):
+        )):
             if skip_dead and 'deactivated' in item:
                 continue
             yield item
@@ -187,8 +187,8 @@ class VkApi(object):
 
     def _paginate(self, url, count, **params):
         for offset in xrange(0, sys.maxint, count):
-            if 'access_token' in params and offset:
-                self._sleep()
+            # if 'access_token' in params and offset:
+            self._sleep()
             data = self._get(url, **dict(params, offset=offset, count=count))
             try:
                 items = data['response']['items']
