@@ -254,21 +254,28 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
 
 
 @main.command(help='Статистика слов на основе моих сообщений')
-# если ~6-8 тыс. слов в день норма, то возьмём, скажем, ~месяц
-@click.argument('depth_words', nargs=1, default=250000)
-@click.argument('min_word_length', nargs=1, default=3)
-@click.argument('show_top', nargs=1, default=3000)
-def my_dict(depth_words, min_word_length, show_top):
+# если ~6-8 тыс. слов в день норма, то возьмём, скажем, 2 года
+@click.argument('depth_words', nargs=1, default=7000*365*2, type=int)
+@click.argument('min_word_length', nargs=1, default=3, type=int)
+@click.argument('show_top_percent', nargs=1, default=80, type=int)
+def my_dict(depth_words, min_word_length, show_top_percent):
     result = Counter()
     for total, word in enumerate(_words_stream(min_word_length)):
         result[word] += 1
         if total > depth_words:
             break
+    total_percent = 0
     for i, (word, n) in enumerate(
-        sorted(result.items(), key=lambda (word, n): -n)[:show_top],
+        sorted(result.items(), key=lambda (word, n): -n),
         start=1,
     ):
-        stdout('#{}\t{:.4%}\t\t{}\n'.format(i, float(n) / total, word))
+        percent = float(n) / total
+        total_percent += percent
+        stdout('#{}\t{:.0%}\t{} ({:.4%})\t\t{}\n'.format(
+               i, total_percent, n, percent, word))
+        if total_percent * 100 >= show_top_percent:
+            break
+    stdout('--------------------------\nразных слов всего: {}\n'.format(total))
 
 
 def _words_stream(min_word_length):
@@ -279,8 +286,8 @@ def _words_stream(min_word_length):
             continue
         stderr('> {}\n'.format(s))
         for word in s.split():
-            word = ''.join(letter for letter in word if letter in abc)
-            if len(word) < min_word_length or set(word) < 2:
+            word = ''.join(char for char in word if char in abc).strip('-')
+            if len(word) < min_word_length or len(set(word)) < 2:
                 continue
             yield word
 
