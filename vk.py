@@ -255,12 +255,17 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
 
 @main.command(help='Статистика слов на основе моих сообщений')
 # если ~6-8 тыс. слов в день норма, то возьмём, скажем, 2 года
-@click.argument('depth_words', nargs=1, default=7000*365*2, type=int)
-@click.argument('min_word_length', nargs=1, default=3, type=int)
-@click.argument('show_top_percent', nargs=1, default=80, type=int)
-def my_dict(depth_words, min_word_length, show_top_percent):
+@click.option('--depth_words', nargs=1, default=7000*365*2, type=int)
+@click.option('--min_word_length', nargs=1, default=3, type=int)
+@click.option('--show_top_percent', nargs=1, default=80, type=int)
+@click.option('--phrases', default=False, is_flag=True)
+def my_dict(depth_words, min_word_length, show_top_percent, phrases=False):
     result = Counter()
-    for total, word in enumerate(_words_stream(min_word_length)):
+    if phrases:
+        stream = _phrases_stream()
+    else:
+        stream = _words_stream(min_word_length)
+    for total, word in enumerate(stream):
         result[word] += 1
         if total > depth_words:
             break
@@ -278,7 +283,12 @@ def my_dict(depth_words, min_word_length, show_top_percent):
     stdout('--------------------------\nразных слов всего: {}\n'.format(total))
 
 
-def _words_stream(min_word_length):
+def _words_stream(min_word_length=None, use_pymorphy=True):
+    if use_pymorphy:
+        import pymorphy2
+        morph = pymorphy2.MorphAnalyzer()
+    else:
+        morph = None
     abc = u'йцукенгшщзхъфывапролджэячсмитьбюё-'
     for item in vk.messages(out=True):
         s = item['body'].strip().lower()
@@ -287,9 +297,22 @@ def _words_stream(min_word_length):
         stderr('> {}\n'.format(s))
         for word in s.split():
             word = ''.join(char for char in word if char in abc).strip('-')
-            if len(word) < min_word_length or len(set(word)) < 2:
+            if min_word_length:
+                if len(word) < min_word_length or len(set(word)) < 2:
+                    continue
+            elif not word:
                 continue
+            if use_pymorphy:
+                word = morph.parse(word)[0].normal_form
             yield word
+
+
+def _phrases_stream():  # TODO: сделать лучше, сделать умней
+    prev = None
+    for word in _words_stream(use_pymorphy=False):
+        if prev is not None:
+            yield '{} {}'.format(prev, word)
+        prev = word
 
 
 @main.command(help='Статистика лайков в альбоме')
