@@ -255,25 +255,13 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
 
 @main.command(help='Статистика слов на основе моих сообщений')
 # если ~6-8 тыс. слов в день норма, то возьмём, скажем, ~месяц
-@click.argument('depth_words', nargs=1, default=200000)
+@click.argument('depth_words', nargs=1, default=250000)
 @click.argument('min_word_length', nargs=1, default=3)
-@click.argument('show_top', nargs=1, default=500)
+@click.argument('show_top', nargs=1, default=3000)
 def my_dict(depth_words, min_word_length, show_top):
-    abc = u'йцукенгшщзхъфывапролджэячсмитьбюё-'
     result = Counter()
-    total = 0
-    for i, item in enumerate(vk.messages(out=True)):
-        s = item['body'].strip().lower()
-        if not s:
-            continue
-        stderr('> {}\n'.format(s))
-        words = [word for word in (
-            ''.join(letter for letter in word if letter in abc)
-            for word in s.split()
-        ) if len(word) >= min_word_length]
-        for word in words:
-            total += 1
-            result[word] += 1
+    for total, word in enumerate(_words_stream(min_word_length)):
+        result[word] += 1
         if total > depth_words:
             break
     for i, (word, n) in enumerate(
@@ -281,6 +269,20 @@ def my_dict(depth_words, min_word_length, show_top):
         start=1,
     ):
         stdout('#{}\t{:.4%}\t\t{}\n'.format(i, float(n) / total, word))
+
+
+def _words_stream(min_word_length):
+    abc = u'йцукенгшщзхъфывапролджэячсмитьбюё-'
+    for item in vk.messages(out=True):
+        s = item['body'].strip().lower()
+        if not s:
+            continue
+        stderr('> {}\n'.format(s))
+        for word in s.split():
+            word = ''.join(letter for letter in word if letter in abc)
+            if len(word) < min_word_length or set(word) < 2:
+                continue
+            yield word
 
 
 @main.command(help='Статистика лайков в альбоме')
