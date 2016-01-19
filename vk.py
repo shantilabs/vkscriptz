@@ -270,17 +270,22 @@ def my_dict(depth_words, min_word_length, show_top_percent, phrases=False):
         if total > depth_words:
             break
     total_percent = 0
+    unique_words = result.items()
     for i, (word, n) in enumerate(
-        sorted(result.items(), key=lambda (word, n): -n),
+        sorted(unique_words, key=lambda (word, n): -n),
         start=1,
     ):
         percent = float(n) / total
         total_percent += percent
-        stdout('#{}\t{:.0%}\t{} ({:.4%})\t\t{}\n'.format(
-               i, total_percent, n, percent, word))
         if total_percent * 100 >= show_top_percent:
             break
-    stdout('--------------------------\nразных слов всего: {}\n'.format(total))
+        stdout('#{}\t{:.0%}\t{} ({:.4%})\t\t{}\n'.format(
+               i, total_percent, n, percent, word))
+    stdout('--------------------------\n')
+    stdout('найдено слов всего: {}\n'.format(total))
+    stdout('из них разных: {}\n'.format(len(unique_words)))
+    stdout('{}% текста это {:.0%} слов\n'.format(show_top_percent,
+                                                 float(i) / len(unique_words)))
 
 
 def _words_stream(min_word_length=None, use_pymorphy=True):
