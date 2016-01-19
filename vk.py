@@ -11,7 +11,6 @@ from collections import Counter
 from os.path import expanduser
 
 import click
-
 from vkscriptz_core.api import VkApi
 from vkscriptz_core.credentials import JsonCredentials
 from vkscriptz_core.errors import AccessTokenRequired, AccessError
@@ -254,14 +253,34 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
             stdout('{}\n'.format(uid))
 
 
-@main.command(help='Диалоги')
-def dialogs():
-    for item in vk.dialogs():
-        stdout('{} – {} - {}\n'.format(
-            item['message']['date'],
-            item['message']['read_state'],
-            item['message']['body'],
-        ))
+@main.command(help='Статистика слов на основе моих сообщений')
+# если ~6-8 тыс. слов в день норма, то возьмём, скажем, ~месяц
+@click.argument('depth_words', nargs=1, default=200000)
+@click.argument('min_word_length', nargs=1, default=3)
+@click.argument('show_top', nargs=1, default=500)
+def my_dict(depth_words, min_word_length, show_top):
+    abc = u'йцукенгшщзхъфывапролджэячсмитьбюё-'
+    result = Counter()
+    total = 0
+    for i, item in enumerate(vk.messages(out=True)):
+        s = item['body'].strip().lower()
+        if not s:
+            continue
+        stderr('> {}\n'.format(s))
+        words = [word for word in (
+            ''.join(letter for letter in word if letter in abc)
+            for word in s.split()
+        ) if len(word) >= min_word_length]
+        for word in words:
+            total += 1
+            result[word] += 1
+        if total > depth_words:
+            break
+    for i, (word, n) in enumerate(
+        sorted(result.items(), key=lambda (word, n): -n)[:show_top],
+        start=1,
+    ):
+        stdout('#{}\t{:.4%}\t\t{}\n'.format(i, float(n) / total, word))
 
 
 @main.command(help='Статистика лайков в альбоме')

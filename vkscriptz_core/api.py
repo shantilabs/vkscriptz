@@ -137,7 +137,7 @@ class VkApi(object):
             group_id=group_id,
         ))
 
-    def user_info(self, user_ids):
+    def user_info(self, user_ids=None):
         """
         https://vk.com/dev/users.get
         """
@@ -154,8 +154,17 @@ class VkApi(object):
             200,
             access_token=self.credentials.access_token,
         ):
-            item['message']['date'] = \
-                datetime.datetime.fromtimestamp(item['message']['date'])
+            item['message']['date'] = self._to_date(item['message']['date'])
+            yield item
+
+    def messages(self, out=False):
+        for item in self._paginate(
+            'https://api.vk.com/method/messages.get',
+            200,
+            access_token=self.credentials.access_token,
+            out=int(out),
+        ):
+            item['date'] = self._to_date(item['date'])
             yield item
 
     def get_album_photos(self, owner_id, album_id):
@@ -237,6 +246,9 @@ class VkApi(object):
             'Access to group denied',
             'Permission to perform this action is denied',
         ))
+
+    def _to_date(self, x):
+        return datetime.datetime.fromtimestamp(x)
 
 
 def chunkize(ids, chunk_size=100):
