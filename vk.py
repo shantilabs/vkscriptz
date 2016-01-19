@@ -284,8 +284,10 @@ def my_dict(depth_words, min_word_length, show_top_percent, phrases=False):
     stdout('--------------------------\n')
     stdout('найдено слов всего: {}\n'.format(total))
     stdout('из них разных: {}\n'.format(len(unique_words)))
-    stdout('{}% текста это {:.0%} слов\n'.format(show_top_percent,
-                                                 float(i) / len(unique_words)))
+    stdout('{}% текста это {:.0%} слов\n'.format(
+        show_top_percent,
+        float(i) / len(unique_words),
+    ))
 
 
 def _words_stream(min_word_length=None, use_pymorphy=True):
