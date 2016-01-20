@@ -1,3 +1,11 @@
+Установка:
+```
+git clone https://github.com/shantilabs/vkscriptz
+cd vkscriptz
+pip install -r requirements.txt
+./vk.py auth
+```
+
 Всего участников группы:
 ```bash
 $ ./vk.py group_members shanti_shanti_shop | wc -l
