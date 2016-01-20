@@ -1,10 +1,12 @@
-Установка:
+## Установка
 ```
 git clone https://github.com/shantilabs/vkscriptz
 cd vkscriptz
 pip install -r requirements.txt
 ./vk.py auth
 ```
+
+## Примеры использования
 
 Всего участников группы:
 ```bash
@@ -153,7 +155,7 @@ group seafever:  (2479 users) 549926
 
 Чистим группу от удалённых:
 ```bash
- $ ./vk.py group_remove_members shantichai `./vk.py group_members --dead shantichai`
+ $ ./vk.py group_remove_members --dead`
 ```
 
 Сложный пример: Получение списка членов группы seafever, входящих в одну из «мусорных» групп из списка в файле:
