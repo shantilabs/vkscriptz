@@ -5,7 +5,7 @@ import datetime
 import requests
 import time
 
-from vkscriptz_core.errors import AccessError, AccessTokenRequired
+from .errors import AccessError, AccessTokenRequired
 
 logger = logging.getLogger('vk')
 
@@ -16,7 +16,24 @@ class VkApi(object):
     def __init__(self, credentials):
         self.credentials = credentials
 
-    def user_groups(self, user_id):
+    @classmethod
+    def user_link(cls, uid, screen_name=None):
+        if screen_name:
+            return 'https://vk.com/{}'.format(screen_name)
+        else:
+            return 'https://vk.com/id{}'.format(uid)
+
+    @classmethod
+    def group_link(cls, gid, group_type, screen_name=None):
+        if screen_name:
+            return 'https://vk.com/{}'.format(screen_name)
+        else:
+            return 'https://vk.com/{}{}'.format(group_type, gid)
+
+    def user_groups(self, user_id=None, fields=(
+        'name',
+        'screen_name',
+    )):
         if not self.credentials.access_token:
             raise AccessTokenRequired()
         for item in self._paginate(
@@ -24,7 +41,7 @@ class VkApi(object):
             1000,
             user_id=user_id,
             extended=1,
-            fields='name,screen_name',
+            fields=','.join(fields),
             access_token=self.credentials.access_token,
         ):
             yield item
@@ -147,6 +164,12 @@ class VkApi(object):
                 user_ids=','.join(map(str, cur_ids)),
             ):
                 yield item
+
+    def self_info(self, fields=None):
+        return self._get(
+            'https://api.vk.com/method/users.get',
+            fields=','.join(fields) if fields else None,
+        )
 
     def dialogs(self):
         for item in self._paginate(

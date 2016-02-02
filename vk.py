@@ -11,9 +11,11 @@ from collections import Counter
 from os.path import expanduser
 
 import click
-from vkscriptz_core.api import VkApi
-from vkscriptz_core.credentials import JsonCredentials
-from vkscriptz_core.errors import AccessTokenRequired, AccessError
+
+from core.api import VkApi
+from core.credentials import JsonCredentials
+from core.errors import AccessTokenRequired, AccessError
+
 
 home = expanduser('~')
 credentials = JsonCredentials(os.path.join(home, '.vkscriptz.json'))
