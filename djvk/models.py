@@ -129,11 +129,7 @@ class Group(models.Model):
 
     @admincolumn('админ')
     def get_default_admin(self):
-        return Subscription.objects.filter(
-            group=self,
-            is_admin=True,
-
-        )
+        return self.subscriptions.filter(is_admin=True).first().account
 
     def __unicode__(self):
         return self.name or self.get_link() or '(новая группа)'

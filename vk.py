@@ -72,6 +72,7 @@ def auth():
             'friends',
             'groups',
             'stats',
+            'wall',
         )),
         # response_type='code',
         response_type='token',
@@ -202,6 +203,19 @@ def group_active_members(group_id):
                     stdout('{}\n'.format(like))
                     n += 1
         stderr('{} active member(s)\n'.format(n))
+
+
+@main.command(help='Репосты')
+@click.argument('group_id', nargs=1, required=True)
+@click.argument('post_id', nargs=1, required=True)
+def group_reposts(group_id, post_id):
+    reposts = (
+        item
+        for item in vk.wall_reposts(force_group_id(group_id), post_id)
+        if item['from_id'] > 0
+    )
+    for i, item in enumerate(reposts, start=1):
+        stdout('{}. {}\n'.format(i, VkApi.user_link(item['from_id'])))
 
 
 @main.command(help='Удаляет участников из группы')

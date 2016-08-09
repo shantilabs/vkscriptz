@@ -134,6 +134,20 @@ class VkApi(object):
         ):
             yield item
 
+    def wall_reposts(self, owner_id, post_id):
+        """
+        https://vk.com/dev/wall.getReposts
+        """
+        if owner_id > 0:
+            owner_id = -owner_id
+        for item in self._paginate(
+            'https://api.vk.com/method/wall.getReposts',
+            10,
+            owner_id=owner_id,
+            post_id=post_id,
+        ):
+            yield item
+
     def wall(self, owner_id):
         """
         https://vk.com/dev/wall.get
@@ -219,7 +233,6 @@ class VkApi(object):
 
     def _paginate(self, url, count, **params):
         for offset in xrange(0, sys.maxint, count):
-            # if 'access_token' in params and offset:
             self._sleep()
             data = self._get(url, **dict(params, offset=offset, count=count))
             try:
