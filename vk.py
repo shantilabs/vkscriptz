@@ -338,6 +338,55 @@ def _phrases_stream():  # TODO: сделать лучше, сделать умн
         prev = word
 
 
+@main.command(help='Авторы фото в альбоме')
+@click.argument('group_id', nargs=1, required=True)
+@click.argument('album_id', nargs=1, required=True)
+@click.option('--is_group', default=True, type=bool)
+def group_album_authors(group_id, album_id, is_group):
+    group_id = force_group_id(group_id)
+    if is_group:
+        group_id *= -1
+    result = {}
+    for photo in vk.get_album_photos(group_id, album_id):
+        link = VkApi.user_link(photo['user_id'])
+        stderr('photo#{}: {}\n'.format(photo['id'], link))
+        result[link] = 'https://vk.com/photo{}_{}'.format(group_id, photo['id'])
+    for i, link in enumerate(result.values(), start=1):
+        stdout('{}. {}\n'.format(i, link))
+
+
+@main.command(help='Лайки к посту')
+@click.argument('group_id', nargs=1, required=True)
+@click.argument('post_id', nargs=1, required=True)
+@click.option('--is_group', default=True, type=bool)
+def post_likes(group_id, post_id, is_group):
+    group_id = force_group_id(group_id)
+    if is_group:
+        group_id *= -1
+
+    c = Counter()
+    likers = Counter()
+    for comment in vk.wall_comments(group_id, post_id):
+        likes = list(vk.likes(group_id, 'comment', comment['id']))
+        stderr('comment#{} - {}\n'.format(comment['id'], len(likes)))
+        # for user_id in likes:
+        #     c[user_id] += 1
+        c[comment['from_id']] += len(likes)
+        for like in likes:
+            likers[like] += 1
+
+    total = 0
+    for i, (user_id, n) in enumerate(sorted(c.items(), key=lambda x: -x[1])):
+        stdout('{}. {} - {}\n'.format(i + 1, VkApi.user_link(user_id), n))
+        total += n
+
+    print('LIKERS')
+    for i, (user_id, n) in enumerate(sorted(likers.items(), key=lambda x: -x[1])):  # noqa
+        stdout('{}. {} - {}\n'.format(i + 1, VkApi.user_link(user_id), n))
+
+    stdout('TOTAL: {}\n'.format(total))
+
+
 @main.command(help='Статистика лайков в альбоме')
 @click.argument('group_id', nargs=1, required=True)
 @click.argument('album_id', nargs=1, required=True)
