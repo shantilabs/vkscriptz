@@ -359,18 +359,31 @@ def group_album_authors(group_id, album_id, is_group):
 @click.argument('group_id', nargs=1, required=True)
 @click.argument('post_id', nargs=1, required=True)
 @click.option('--is_group', default=True, type=bool)
-def post_likes(group_id, post_id, is_group):
+@click.option('--members_only', default=False, type=bool, is_flag=True)
+def post_likes(group_id, post_id, members_only, is_group):
     group_id = force_group_id(group_id)
     if is_group:
         group_id *= -1
 
+    if members_only:
+        stderr('members: ')
+        members = {x['id'] for x in vk.group_members(-group_id, skip_dead=False)}
+        stderr('{}\n'.format(len(members)))
+    else:
+        members = set()
+
     c = Counter()
     likers = Counter()
+    liked_comments = Counter()
+    comments = {}
     for comment in vk.wall_comments(group_id, post_id):
         likes = list(vk.likes(group_id, 'comment', comment['id']))
         stderr('comment#{} - {}\n'.format(comment['id'], len(likes)))
-        # for user_id in likes:
-        #     c[user_id] += 1
+        comments[comment['id']] = comment
+        if members:
+            likes = list(set(likes) & members)
+            stderr('members: {}\n'.format(len(likes)))
+        liked_comments[comment['id']] += len(likes)
         c[comment['from_id']] += len(likes)
         for like in likes:
             likers[like] += 1
@@ -380,9 +393,14 @@ def post_likes(group_id, post_id, is_group):
         stdout('{}. {} - {}\n'.format(i + 1, VkApi.user_link(user_id), n))
         total += n
 
-    print('LIKERS')
+    print('TOP LIKERS')
     for i, (user_id, n) in enumerate(sorted(likers.items(), key=lambda x: -x[1])):  # noqa
         stdout('{}. {} - {}\n'.format(i + 1, VkApi.user_link(user_id), n))
+
+    print()
+    print('TOP COMMENTS')
+    for i, (comment_id, n) in enumerate(sorted(liked_comments.items(), key=lambda x: -x[1])):  # noqa
+        stdout('{}. {} - {}\n'.format(i + 1, n, comments[comment_id]['text'] or comments[comment_id]))  # noqa
 
     stdout('TOTAL: {}\n'.format(total))
 
@@ -399,7 +417,7 @@ def group_album_stat(group_id, album_id, members_only, is_group):
         members = {x['id'] for x in vk.group_members(group_id, skip_dead=True)}
         stderr('{}\n'.format(len(members)))
     else:
-        members = {}
+        members = set()
     result = []
     if is_group:
         group_id *= -1
