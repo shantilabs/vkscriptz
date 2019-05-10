@@ -25,11 +25,11 @@ logging.basicConfig(level=logging.WARN, stream=sys.stderr)
 
 
 def stderr(s):
-    sys.stderr.write(s.encode(coding))
+    sys.stderr.write(s)
 
 
 def stdout(s):
-    sys.stdout.write(s.encode(coding))
+    sys.stdout.write(s)
 
 
 def force_group_id(gid):
@@ -61,7 +61,7 @@ def main():
 
 @main.command(help='Создать токен для доступа')
 def auth():
-    webbrowser.open('https://oauth.vk.com/authorize?' + urllib.urlencode(dict(
+    webbrowser.open('https://oauth.vk.com/authorize?' + urllib.parse.urlencode(dict(
         client_id=credentials.client_id,
         redirect_uri='https://api.vk.com/blank.html#',
         display='page',
@@ -81,7 +81,7 @@ def auth():
     stderr('Браузер должен открыть страницу "https://api.vk.com/blank.html'
            '#access_token=<многобукв>". Надо скопировать все <многобукв> '
            'сюда, и нажать ENTER\n')
-    result = raw_input('>').strip().split('&')[0]
+    result = input('>').strip().split('&')[0]
     if result:
         credentials.access_token = result
         credentials.save()
