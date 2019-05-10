@@ -155,7 +155,7 @@ def group_members(group_id, city_id, dead, min_intersection):
             continue
         stderr('{} member(s)\n'.format(n))
     if counter is not None:
-        for uid, num in sorted(counter.items(), key=lambda (k, v): (-v, k)):
+        for uid, num in sorted(counter.items(), key=lambda kv: (-kv[1], kv[0])):
             if min_intersection > 0 and num < min_intersection:
                 continue
             stdout('{}\t{}\n'.format(uid, num))
@@ -260,7 +260,7 @@ def friends_in_group(group_id, max_user_friends, min_friends_in_group, human):
         members.append(member['id'])
     for member_id in members:
         counter.pop(member_id, None)
-    for uid, num in sorted(counter.items(), key=lambda (k, v): (-v, k)):
+    for uid, num in sorted(counter.items(), key=lambda kv: (-kv[1], kv[0])):
         if num < min_friends_in_group:
             continue
         if human:
@@ -288,7 +288,7 @@ def my_dict(depth_words, min_word_length, show_top_percent, phrases=False):
     total_percent = 0
     unique_words = result.items()
     for i, (word, n) in enumerate(
-        sorted(unique_words, key=lambda (word, n): -n),
+        sorted(unique_words, key=lambda word_n: -word_n[1]),
         start=1,
     ):
         percent = float(n) / total
