@@ -91,6 +91,7 @@ class VkApi(object):
             1000,
             group_id=group_id,
             fields='city,connections',
+            access_token=self.credentials.access_token,
         )):
             if skip_dead and 'deactivated' in item:
                 continue
@@ -166,6 +167,7 @@ class VkApi(object):
         return next(self._list_request(
             'https://api.vk.com/method/groups.getById',
             group_id=group_id,
+            access_token=self.credentials.access_token,
         ))
 
     def user_info(self, user_ids=None):

@@ -43,7 +43,7 @@ def force_group_id(gid):
 
 
 def force_user_id(uid):
-    if isinstance(uid, basestring) and not uid.isdigit():
+    if isinstance(uid, str) and not uid.isdigit():
         name = uid
         user = next(vk.user_info(uid), None)
         if not user:
