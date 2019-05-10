@@ -232,7 +232,7 @@ class VkApi(object):
         time.sleep(sec)
 
     def _paginate(self, url, count, **params):
-        for offset in xrange(0, sys.maxint, count):
+        for offset in range(0, sys.maxsize, count):
             self._sleep()
             data = self._get(url, **dict(params, offset=offset, count=count))
             try:
@@ -290,5 +290,5 @@ class VkApi(object):
 def chunkize(ids, chunk_size=100):
     if not hasattr(ids, '__iter__'):
         ids = [ids]
-    for offset in xrange(0, len(ids), chunk_size):
+    for offset in range(0, len(ids), chunk_size):
         yield ids[offset:offset + chunk_size]
